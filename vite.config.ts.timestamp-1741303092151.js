@@ -1,0 +1,13 @@
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { crx } from "@crxjs/vite-plugin";
+import * as fs from "fs";
+var manifest = JSON.parse(fs.readFileSync("./public/manifest.json", "utf-8"));
+var vite_config_default = defineConfig({
+  plugins: [react(), crx({ manifest })]
+});
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcudHMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImltcG9ydCB7IGRlZmluZUNvbmZpZyB9IGZyb20gJ3ZpdGUnXG5pbXBvcnQgcmVhY3QgZnJvbSAnQHZpdGVqcy9wbHVnaW4tcmVhY3QnXG5pbXBvcnQgeyBjcnggfSBmcm9tICdAY3J4anMvdml0ZS1wbHVnaW4nXG5pbXBvcnQgKiBhcyBmcyBmcm9tICdmcydcblxuLy8gUmVhZCB0aGUgbWFuaWZlc3QgZmlsZSBtYW51YWxseVxuY29uc3QgbWFuaWZlc3QgPSBKU09OLnBhcnNlKGZzLnJlYWRGaWxlU3luYygnLi9wdWJsaWMvbWFuaWZlc3QuanNvbicsICd1dGYtOCcpKVxuXG4vLyBodHRwczovL3ZpdGVqcy5kZXYvY29uZmlnL1xuZXhwb3J0IGRlZmF1bHQgZGVmaW5lQ29uZmlnKHtcbiAgcGx1Z2luczogW3JlYWN0KCksIGNyeCh7IG1hbmlmZXN0IH0pXSxcbn0pXG4iXSwKICAibWFwcGluZ3MiOiAiO0FBQUEsU0FBUyxvQkFBb0I7QUFDN0IsT0FBTyxXQUFXO0FBQ2xCLFNBQVMsV0FBVztBQUNwQixZQUFZLFFBQVE7QUFHcEIsSUFBTSxXQUFXLEtBQUssTUFBUyxnQkFBYSwwQkFBMEIsT0FBTyxDQUFDO0FBRzlFLElBQU8sc0JBQVEsYUFBYTtBQUFBLEVBQzFCLFNBQVMsQ0FBQyxNQUFNLEdBQUcsSUFBSSxFQUFFLFNBQVMsQ0FBQyxDQUFDO0FBQ3RDLENBQUM7IiwKICAibmFtZXMiOiBbXQp9Cg==

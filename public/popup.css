@@ -1,0 +1,152 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+    color: #333;
+    width: 450px;
+    min-height: 600px;
+    overflow-x: hidden;
+}
+
+.popup-container {
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #2196F3;
+    text-align: center;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.background-options, .gradient-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.background-option, .gradient-option, button:not(.remove-image) {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #e0e0e0;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.background-option:hover, .gradient-option:hover, button:not(.remove-image):hover {
+    background-color: #d0d0d0;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+input[type="color"], input[type="file"], input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.remove-image {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.remove-image:hover {
+    background-color: #e53935;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: 500;
+}
+
+.dropzone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    background-color: #f5f5f5;
+}
+
+.dropzone.active {
+    border-color: #2196F3;
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.dropzone p {
+    margin: 0;
+    color: #666;
+}
+
+.backgrounds-list {
+    max-height: 150px;
+    overflow-y: auto;
+    margin-top: 10px;
+    padding-left: 0;
+}
+
+.backgrounds-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    list-style-type: none;
+}
+
+.backgrounds-list button {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+#schedulerUI {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #fff;
+}

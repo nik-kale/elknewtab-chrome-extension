@@ -1,0 +1,800 @@
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  transition: all 0.5s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Video background */
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+/* Clock and Date Widget */
+.clock-widget {
+  font-size: 6rem;
+  font-weight: 300;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+  user-select: none;
+  letter-spacing: -2px;
+}
+
+.date-widget {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
+  margin-bottom: 2rem;
+  user-select: none;
+}
+
+/* Greeting Widget */
+.greeting {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 4rem;
+  user-select: none;
+}
+
+/* Search Box */
+.search-box {
+  position: relative;
+  width: 600px;
+  max-width: 80%;
+  margin-bottom: 3rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 15px 25px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 50px;
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Settings toggle button */
+.settings-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.settings-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
+}
+
+/* Settings panel */
+.settings-panel {
+  position: absolute;
+  top: 95px;
+  right: 20px;
+  width: 450px;
+  background-color: rgba(20, 20, 25, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  padding: 25px;
+  z-index: 99;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transform-origin: top right;
+  animation: slideIn 0.3s ease forwards;
+}
+
+.settings-panel::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-panel {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.setting-group {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.setting-group h3 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.setting-group h4 {
+  margin: 15px 0 10px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+/* Background options */
+.background-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.background-options button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.background-options button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.background-options button.active {
+  background-color: #2196F3;
+  color: white;
+  border-color: rgba(33, 150, 243, 0.5);
+}
+
+/* Gradient directions */
+.gradient-directions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.gradient-direction {
+  width: 100%;
+  padding: 8px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gradient-direction:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.gradient-direction.active {
+  background-color: #2196F3;
+  color: white;
+  border-color: rgba(33, 150, 243, 0.5);
+}
+
+/* Gradient colors */
+.gradient-colors {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.gradient-color-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.color-preview {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.color-value {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-left: 0;
+}
+
+/* Add color button */
+.add-color-button {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  padding: 20px;
+}
+
+.add-color-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+/* Preset gradients */
+.gradient-presets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.preset-button {
+  height: 35px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.preset-button:hover {
+  transform: scale(1.05);
+}
+
+/* Gradient preview */
+.gradient-preview {
+  width: 100%;
+  height: 50px;
+  border-radius: 8px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Random background options */
+.random-type-options,
+.gradient-type-options,
+.cycling-mode {
+  margin-bottom: 20px;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.generate-button {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  padding: 12px 20px;
+  cursor: pointer;
+  margin-top: 15px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.generate-button:hover {
+  background-color: rgba(76, 175, 80, 0.4);
+}
+
+/* Cycling interval */
+.cycling-interval input {
+  width: 100px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+  margin-top: 5px;
+}
+
+/* Backgrounds list */
+.backgrounds-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.backgrounds-info {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 8px 0;
+}
+
+.backgrounds-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.backgrounds-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.backgrounds-list li:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.backgrounds-list li:last-child {
+  border-bottom: none;
+}
+
+.backgrounds-list button {
+  background-color: rgba(244, 67, 54, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.backgrounds-list button:hover {
+  background-color: rgba(244, 67, 54, 0.4);
+}
+
+/* Quick Links */
+.quick-links {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.quick-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 15px;
+  width: 90px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.quick-link:hover {
+  transform: translateY(-5px);
+  background-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.quick-link-icon {
+  font-size: 24px;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.quick-link-text {
+  color: white;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Weather Widget */
+.weather-widget {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 12px 20px;
+  color: white;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.weather-icon {
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+.weather-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-temp {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.weather-location {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* Quotes Widget */
+.quotes-widget {
+  position: absolute;
+  bottom: 20px;
+  text-align: center;
+  max-width: 80%;
+  color: white;
+  font-style: italic;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.quote-text {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.quote-author {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Custom Background Upload */
+.custom-background {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.image-controls,
+.video-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.image-preview,
+.video-preview {
+  width: 100%;
+  height: 180px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.2);
+  margin: 10px 0;
+}
+
+.image-preview {
+  background-size: cover;
+  background-position: center;
+}
+
+.video-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dropzone {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.remove-image,
+.remove-video {
+  padding: 8px 16px;
+  background: rgba(255, 0, 0, 0.2);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.remove-image:hover,
+.remove-video:hover {
+  background: rgba(255, 0, 0, 0.3);
+}
+
+.size-note {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 5px;
+}
+
+/* Color picker container */
+.color-picker-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.color-value {
+  margin-left: 15px;
+  font-family: monospace;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+/* Upload button */
+.upload-button {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .gradient-colors {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .gradient-directions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gradient-presets {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Improve gradient colors layout */
+.gradient-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Ensure the gradient colors wrap well */
+@media (max-width: 450px) {
+  .gradient-colors {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Improve gradient controls layout */
+.gradient-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gradient-controls h4 {
+  margin-top: 15px;
+  margin-bottom: 8px;
+}
+
+/* Image and Video Gallery Styles */
+.image-gallery,
+.video-gallery {
+  margin-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 15px;
+}
+
+.image-thumbnails,
+.video-thumbnails {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.image-thumbnail,
+.video-thumbnail {
+  width: 100%;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.thumbnail-image,
+.thumbnail-video {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+.thumbnail-delete {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.image-thumbnail:hover .thumbnail-delete,
+.video-thumbnail:hover .thumbnail-delete {
+  opacity: 1;
+}
+
+.thumbnail-delete:hover {
+  background-color: rgba(255, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+.image-thumbnail:hover,
+.video-thumbnail:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.image-thumbnail.active,
+.video-thumbnail.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 10px var(--primary-color);
+}
+
+.video-thumbnail {
+  position: relative;
+  background-color: #000;
+}
+
+.video-thumbnail::after {
+  content: '▶';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 24px;
+  opacity: 0.7;
+}
+
+.video-thumbnail video {
+  opacity: 0.6;
+}
+
+.video-thumbnail:hover video {
+  opacity: 0.8;
+}

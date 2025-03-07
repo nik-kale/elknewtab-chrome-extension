@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elk New Tab - Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2887ee;
+            --secondary-color: #499df8;
+            --glass-bg: #1b1b1b;
+            --border-radius: 16px;
+            --shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+            --blur: 10px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            width: 420px;
+            height: 600px;
+            background: linear-gradient(135deg, #1b1b1b 0%, #1b1b1b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+            max-width: 380px;
+            background: var(--glass-bg);
+            padding: 24px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(var(--blur));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            box-shadow: 0px 5px 15px rgba(255, 255, 255, 0.1);
+            margin-bottom: 12px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .card {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(var(--blur));
+            box-shadow: 0px 5px 15px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .features {
+            list-style: none;
+            display: grid;
+            gap: 10px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .feature-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            color: var(--secondary-color);
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            background: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            margin-top: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0px 5px 15px rgba(0, 122, 255, 0.3);
+            border: none;
+        }
+
+        .btn:hover {
+            background: var(--secondary-color);
+            box-shadow: 0px 5px 20px rgba(90, 200, 250, 0.5);
+        }
+
+        .footer {
+            font-size: 12px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 12px;
+        }
+
+        .manual-fallback {
+            font-size: 11px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 6px;
+            padding: 0 12px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="./icons/icon128.png" alt="Elk New Tab Logo" class="logo">
+        </div>
+        <h1>Elk New Tab</h1>
+        <p class="subtitle">Reimagine your new tab experience.</p>
+
+        <div class="card">
+            <div class="card-title">✨ Quick Start Guide</div>
+            <ul class="features">
+                <li class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.27L18.18 21 16.54 14.81 22 10.09 15.81 9.64 12 3.5 8.19 9.64 2 10.09 7.46 14.81 5.82 21z"/>
+                    </svg>
+                    Choose from colors, gradients, images, or videos
+                </li>
+                <li class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.27L18.18 21 16.54 14.81 22 10.09 15.81 9.64 12 3.5 8.19 9.64 2 10.09 7.46 14.81 5.82 21z"/>
+                    </svg>
+                    Customize your background with stunning presets
+                </li>
+                <li class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.27L18.18 21 16.54 14.81 22 10.09 15.81 9.64 12 3.5 8.19 9.64 2 10.09 7.46 14.81 5.82 21z"/>
+                    </svg>
+                    Upload and cycle through your own media
+                </li>
+            </ul>
+        </div>
+
+        <a href="#" class="btn" id="openSettings">Open in New Tab</a>
+        <div class="manual-fallback">If button doesn't work, open a new tab and click the extension icon again.</div>
+
+        <div class="footer">v1.4.0</div>
+    </div>
+
+    <!-- External script file instead of inline script -->
+    <script src="popup.js"></script>
+</body>
+</html>
