@@ -65,8 +65,80 @@ function App() {
   const [greeting, setGreeting] = useState('')
 
   // Quote and weather - read-only, not setting these
-  const [quote] = useState({ text: 'The only way to do great work is to love what you do.', author: 'Steve Jobs' })
   const [weather] = useState({ temp: '72°', location: 'San Francisco, CA' })
+
+  // UI visibility toggles
+  const [showSearchBar, setShowSearchBar] = useState<boolean>(true)
+  const [showWeather, setShowWeather] = useState<boolean>(true)
+  const [showTime, setShowTime] = useState<boolean>(true)
+  const [showDate, setShowDate] = useState<boolean>(true)
+  const [showGreeting, setShowGreeting] = useState<boolean>(true)
+  const [showQuickLinks, setShowQuickLinks] = useState<boolean>(true)
+  const [showQuote, setShowQuote] = useState<boolean>(true)
+
+  // Custom quick links
+  const [quickLinks, setQuickLinks] = useState<Array<{id: string, name: string, url: string, icon: string}>>([
+    { id: '1', name: 'Gmail', url: 'https://mail.google.com', icon: '📧' },
+    { id: '2', name: 'Drive', url: 'https://drive.google.com', icon: '📁' },
+    { id: '3', name: 'Calendar', url: 'https://calendar.google.com', icon: '📅' },
+    { id: '4', name: 'YouTube', url: 'https://youtube.com', icon: '📺' }
+  ])
+
+  // Quotes collection
+  const [quotes, setQuotes] = useState<Array<{text: string, author: string}>>([
+    { text: 'The only way to do great work is to love what you do.', author: 'Steve Jobs' },
+    { text: 'Innovation distinguishes between a leader and a follower.', author: 'Steve Jobs' },
+    { text: 'Stay hungry, stay foolish.', author: 'Steve Jobs' },
+    { text: 'Your time is limited, so don\'t waste it living someone else\'s life.', author: 'Steve Jobs' },
+    { text: 'The future belongs to those who believe in the beauty of their dreams.', author: 'Eleanor Roosevelt' },
+    { text: 'Life is what happens when you\'re busy making other plans.', author: 'John Lennon' },
+    { text: 'The best way to predict the future is to create it.', author: 'Peter Drucker' },
+    { text: 'The journey of a thousand miles begins with one step.', author: 'Lao Tzu' },
+    { text: 'You miss 100% of the shots you don\'t take.', author: 'Wayne Gretzky' },
+    { text: 'It does not matter how slowly you go as long as you do not stop.', author: 'Confucius' },
+    { text: 'Success is not final, failure is not fatal: It is the courage to continue that counts.', author: 'Winston Churchill' },
+    { text: 'Believe you can and you\'re halfway there.', author: 'Theodore Roosevelt' },
+    { text: 'The only limit to our realization of tomorrow is our doubts of today.', author: 'Franklin D. Roosevelt' },
+    { text: 'In the middle of difficulty lies opportunity.', author: 'Albert Einstein' },
+    { text: 'If you want to lift yourself up, lift up someone else.', author: 'Booker T. Washington' },
+    { text: 'The purpose of our lives is to be happy.', author: 'Dalai Lama' },
+    { text: 'You only live once, but if you do it right, once is enough.', author: 'Mae West' },
+    { text: 'Don\'t count the days, make the days count.', author: 'Muhammad Ali' },
+    { text: 'The best revenge is massive success.', author: 'Frank Sinatra' },
+    { text: 'The way to get started is to quit talking and begin doing.', author: 'Walt Disney' },
+    { text: 'If life were predictable it would cease to be life, and be without flavor.', author: 'Eleanor Roosevelt' },
+    { text: 'If you look at what you have in life, you\'ll always have more.', author: 'Oprah Winfrey' },
+    { text: 'If you set your goals ridiculously high and it\'s a failure, you will fail above everyone else\'s success.', author: 'James Cameron' },
+    { text: 'Life is what we make it, always has been, always will be.', author: 'Grandma Moses' },
+    { text: 'The question isn\'t who is going to let me; it\'s who is going to stop me.', author: 'Ayn Rand' },
+    { text: 'Spread love everywhere you go. Let no one ever come to you without leaving happier.', author: 'Mother Teresa' },
+    { text: 'Do not go where the path may lead, go instead where there is no path and leave a trail.', author: 'Ralph Waldo Emerson' },
+    { text: 'Always remember that you are absolutely unique. Just like everyone else.', author: 'Margaret Mead' },
+    { text: 'Don\'t judge each day by the harvest you reap but by the seeds that you plant.', author: 'Robert Louis Stevenson' },
+    { text: 'Tell me and I forget. Teach me and I remember. Involve me and I learn.', author: 'Benjamin Franklin' },
+    { text: 'The best and most beautiful things in the world cannot be seen or even touched - they must be felt with the heart.', author: 'Helen Keller' },
+    { text: 'It is during our darkest moments that we must focus to see the light.', author: 'Aristotle' },
+    { text: 'Whoever is happy will make others happy too.', author: 'Anne Frank' },
+    { text: 'You will face many defeats in life, but never let yourself be defeated.', author: 'Maya Angelou' },
+    { text: 'The greatest glory in living lies not in never falling, but in rising every time we fall.', author: 'Nelson Mandela' },
+    { text: 'Never let the fear of striking out keep you from playing the game.', author: 'Babe Ruth' },
+    { text: 'Life is either a daring adventure or nothing at all.', author: 'Helen Keller' },
+    { text: 'Many of life\'s failures are people who did not realize how close they were to success when they gave up.', author: 'Thomas A. Edison' },
+    { text: 'You have brains in your head. You have feet in your shoes. You can steer yourself any direction you choose.', author: 'Dr. Seuss' },
+    { text: 'Keep smiling, because life is a beautiful thing and there\'s so much to smile about.', author: 'Marilyn Monroe' },
+    { text: 'In three words I can sum up everything I\'ve learned about life: it goes on.', author: 'Robert Frost' },
+    { text: 'Love the life you live. Live the life you love.', author: 'Bob Marley' },
+    { text: 'The mind is everything. What you think you become.', author: 'Buddha' },
+    { text: 'Everything you\'ve ever wanted is on the other side of fear.', author: 'George Addair' },
+    { text: 'Live in the sunshine, swim the sea, drink the wild air.', author: 'Ralph Waldo Emerson' },
+    { text: 'The most difficult thing is the decision to act, the rest is merely tenacity.', author: 'Amelia Earhart' },
+    { text: 'Twenty years from now you will be more disappointed by the things that you didn\'t do than by the ones you did do.', author: 'Mark Twain' },
+    { text: 'Great minds discuss ideas; average minds discuss events; small minds discuss people.', author: 'Eleanor Roosevelt' },
+    { text: 'A successful man is one who can lay a firm foundation with the bricks others have thrown at him.', author: 'David Brinkley' },
+    { text: 'Those who dare to fail miserably can achieve greatly.', author: 'John F. Kennedy' }
+  ])
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState<number>(0)
+  const [quoteChangeInterval, setQuoteChangeInterval] = useState<number>(86400) // 24 hours in seconds
 
   // Add useRef for the settings panel
   const settingsPanelRef = useRef<HTMLDivElement>(null);
@@ -85,7 +157,18 @@ function App() {
     CYCLING_ENABLED: 'cyclingEnabled',
     CYCLING_INTERVAL: 'cyclingInterval',
     CYCLING_MODE: 'cyclingMode',
-    CURRENT_BACKGROUND_INDEX: 'currentBackgroundIndex'
+    CURRENT_BACKGROUND_INDEX: 'currentBackgroundIndex',
+    SHOW_SEARCH_BAR: 'showSearchBar',
+    SHOW_WEATHER: 'showWeather',
+    SHOW_TIME: 'showTime',
+    SHOW_DATE: 'showDate',
+    SHOW_GREETING: 'showGreeting',
+    SHOW_QUICK_LINKS: 'showQuickLinks',
+    SHOW_QUOTE: 'showQuote',
+    QUICK_LINKS: 'quickLinks',
+    QUOTES: 'quotes',
+    CURRENT_QUOTE_INDEX: 'currentQuoteIndex',
+    QUOTE_CHANGE_INTERVAL: 'quoteChangeInterval'
   };
 
   // Add click outside handler
@@ -146,7 +229,18 @@ function App() {
       STORAGE_KEYS.CYCLING_ENABLED,
       STORAGE_KEYS.CYCLING_INTERVAL,
       STORAGE_KEYS.CYCLING_MODE,
-      STORAGE_KEYS.CURRENT_BACKGROUND_INDEX
+      STORAGE_KEYS.CURRENT_BACKGROUND_INDEX,
+      STORAGE_KEYS.SHOW_SEARCH_BAR,
+      STORAGE_KEYS.SHOW_WEATHER,
+      STORAGE_KEYS.SHOW_TIME,
+      STORAGE_KEYS.SHOW_DATE,
+      STORAGE_KEYS.SHOW_GREETING,
+      STORAGE_KEYS.SHOW_QUICK_LINKS,
+      STORAGE_KEYS.SHOW_QUOTE,
+      STORAGE_KEYS.QUICK_LINKS,
+      STORAGE_KEYS.QUOTES,
+      STORAGE_KEYS.CURRENT_QUOTE_INDEX,
+      STORAGE_KEYS.QUOTE_CHANGE_INTERVAL
     ], (result) => {
       console.log('Loaded settings from sync storage:', result);
 
@@ -172,6 +266,21 @@ function App() {
       if (result.cyclingInterval) setCyclingInterval(result.cyclingInterval);
       if (result.cyclingMode) setCyclingMode(result.cyclingMode);
       if (result.currentBackgroundIndex !== undefined) setCurrentBackgroundIndex(result.currentBackgroundIndex);
+
+      // Load UI visibility settings
+      if (result.showSearchBar !== undefined) setShowSearchBar(result.showSearchBar);
+      if (result.showWeather !== undefined) setShowWeather(result.showWeather);
+      if (result.showTime !== undefined) setShowTime(result.showTime);
+      if (result.showDate !== undefined) setShowDate(result.showDate);
+      if (result.showGreeting !== undefined) setShowGreeting(result.showGreeting);
+      if (result.showQuickLinks !== undefined) setShowQuickLinks(result.showQuickLinks);
+      if (result.showQuote !== undefined) setShowQuote(result.showQuote);
+
+      // Load quick links and quotes
+      if (result.quickLinks) setQuickLinks(result.quickLinks);
+      if (result.quotes) setQuotes(result.quotes);
+      if (result.currentQuoteIndex !== undefined) setCurrentQuoteIndex(result.currentQuoteIndex);
+      if (result.quoteChangeInterval) setQuoteChangeInterval(result.quoteChangeInterval);
 
       // Then load media files from local storage (larger data)
       chrome.storage.local.get([
@@ -237,10 +346,18 @@ function App() {
       cyclingEnabled,
       cyclingInterval,
       cyclingMode,
-      backgroundsCount: backgrounds.length
+      backgroundsCount: backgrounds.length,
+      currentBackgroundType: backgroundType
     });
 
     const interval = setInterval(() => {
+      // Only cycle backgrounds if the current background type is set to image or video
+      // This ensures we don't override a manual selection of gradient or solid color
+      if (backgroundType !== 'image' && backgroundType !== 'video') {
+        console.log('Skipping background cycling as current type is:', backgroundType);
+        return;
+      }
+
       let nextIndex = 0;
 
       if (cyclingMode === 'random') {
@@ -275,7 +392,7 @@ function App() {
     }, cyclingInterval * 1000);
 
     return () => clearInterval(interval);
-  }, [cyclingEnabled, cyclingInterval, cyclingMode, backgrounds, currentBackgroundIndex]);
+  }, [cyclingEnabled, cyclingInterval, cyclingMode, backgrounds, currentBackgroundIndex, backgroundType]);
 
   // Save settings to Chrome storage
   const saveSetting = (key: string, value: any) => {
@@ -365,6 +482,50 @@ function App() {
           setCurrentBackgroundIndex(value);
           nonMediaSettings[key] = value;
           break;
+        case STORAGE_KEYS.SHOW_SEARCH_BAR:
+          setShowSearchBar(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_WEATHER:
+          setShowWeather(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_TIME:
+          setShowTime(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_DATE:
+          setShowDate(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_GREETING:
+          setShowGreeting(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_QUICK_LINKS:
+          setShowQuickLinks(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_QUOTE:
+          setShowQuote(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.QUICK_LINKS:
+          setQuickLinks(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.QUOTES:
+          setQuotes(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.CURRENT_QUOTE_INDEX:
+          setCurrentQuoteIndex(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.QUOTE_CHANGE_INTERVAL:
+          setQuoteChangeInterval(value);
+          nonMediaSettings[key] = value;
+          break;
       }
     });
 
@@ -440,27 +601,6 @@ function App() {
     });
   };
 
-  // Fix the handleShuffleMode function
-  const handleShuffleMode = () => {
-    updateSettings({
-      cyclingMode: 'random',
-      cyclingEnabled: true
-    });
-    alert('Shuffle mode enabled! Backgrounds will cycle randomly.');
-  };
-
-  // Fix the handleRandomColorType function
-  const handleRandomColorType = (type: 'solid' | 'gradient') => {
-    const newRandomSettings = { ...randomSettings, type };
-    updateSettings({
-      randomSettings: newRandomSettings,
-      backgroundType: 'random'
-    });
-
-    // Show success message
-    alert(`Random ${type} color mode enabled!`);
-  };
-
   // Fix the handleCyclingIntervalChange function
   const handleCyclingIntervalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const interval = Number(e.target.value);
@@ -471,23 +611,6 @@ function App() {
   const handleCyclingEnabledChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const enabled = e.target.checked;
     updateSettings({ cyclingEnabled: enabled });
-  };
-
-  // Fix the handleRemoveFromList function
-  const handleRemoveFromList = (index: number) => {
-    const newBackgrounds = [...backgrounds];
-    newBackgrounds.splice(index, 1);
-
-    const settings: Record<string, any> = {
-      backgrounds: newBackgrounds
-    };
-
-    // If the current background was removed, reset to default
-    if (currentBackgroundIndex === index) {
-      settings.currentBackgroundIndex = 0;
-    }
-
-    updateSettings(settings);
   };
 
   // Add a color picker to the popup UI for solid color and gradient options
@@ -562,7 +685,6 @@ function App() {
         )}
 
         <h4>Gradient Direction</h4>
-        {/* First row of direction buttons */}
         <div className="gradient-directions">
           <button
             className={`gradient-direction ${gradientDirection === 'to right' ? 'active' : ''}`}
@@ -576,102 +698,69 @@ function App() {
           >
             Vertical ↓
           </button>
-        </div>
-
-        {/* Second row of direction buttons */}
-        <div className="gradient-directions">
-          <button
-            className={`gradient-direction ${gradientDirection === 'to bottom right' ? 'active' : ''}`}
-            onClick={() => handleGradientDirectionChange('to bottom right')}
-          >
-            Diagonal ↘
-          </button>
           <button
             className={`gradient-direction ${gradientDirection === 'to bottom left' ? 'active' : ''}`}
             onClick={() => handleGradientDirectionChange('to bottom left')}
           >
             Diagonal ↙
           </button>
-        </div>
-
-        {/* Third row of direction buttons */}
-        <div className="gradient-directions">
           <button
-            className={`gradient-direction ${gradientDirection === 'to top right' ? 'active' : ''}`}
-            onClick={() => handleGradientDirectionChange('to top right')}
+            className={`gradient-direction ${gradientDirection === 'to bottom right' ? 'active' : ''}`}
+            onClick={() => handleGradientDirectionChange('to bottom right')}
           >
-            Diagonal ↗
-          </button>
-          <button
-            className={`gradient-direction ${gradientDirection === 'to top left' ? 'active' : ''}`}
-            onClick={() => handleGradientDirectionChange('to top left')}
-          >
-            Diagonal ↖
+            Diagonal ↘
           </button>
         </div>
 
         <h4>Preset Gradients</h4>
-        <div className="gradient-presets">
-          {/* Existing preset buttons */}
+        <div className="preset-gradients">
           <button
             className="preset-button"
-            style={{ background: 'linear-gradient(to right, #3498db, #9b59b6)' }}
+            style={{background: 'linear-gradient(to right, #4e54c8, #8f94fb)'}}
             onClick={() => updateSettings({
-              gradientColors: ['#3498db', '#9b59b6'],
-              gradientDirection: 'to right',
-              backgroundType: 'gradient'
+              gradientColors: ['#4e54c8', '#8f94fb'],
+              gradientDirection: 'to right'
             })}
-            title="Blue to Purple"
           ></button>
           <button
             className="preset-button"
-            style={{ background: 'linear-gradient(to right, #2ecc71, #3498db)' }}
+            style={{background: 'linear-gradient(to right, #11998e, #38ef7d)'}}
             onClick={() => updateSettings({
-              gradientColors: ['#2ecc71', '#3498db'],
-              gradientDirection: 'to right',
-              backgroundType: 'gradient'
+              gradientColors: ['#11998e', '#38ef7d'],
+              gradientDirection: 'to right'
             })}
-            title="Green to Blue"
           ></button>
           <button
             className="preset-button"
-            style={{ background: 'linear-gradient(to right, #f1c40f, #e74c3c)' }}
+            style={{background: 'linear-gradient(to right, #f12711, #f5af19)'}}
             onClick={() => updateSettings({
-              gradientColors: ['#f1c40f', '#e74c3c'],
-              gradientDirection: 'to right',
-              backgroundType: 'gradient'
+              gradientColors: ['#f12711', '#f5af19'],
+              gradientDirection: 'to right'
             })}
-            title="Yellow to Red"
           ></button>
           <button
             className="preset-button"
-            style={{ background: 'linear-gradient(to bottom, #e74c3c, #9b59b6)' }}
+            style={{background: 'linear-gradient(to right, #ff416c, #ff4b2b)'}}
             onClick={() => updateSettings({
-              gradientColors: ['#e74c3c', '#9b59b6'],
-              gradientDirection: 'to bottom',
-              backgroundType: 'gradient'
+              gradientColors: ['#ff416c', '#ff4b2b'],
+              gradientDirection: 'to right'
             })}
-            title="Red to Purple"
           ></button>
           <button
             className="preset-button"
-            style={{ background: 'linear-gradient(to right, #FF6B6B, #556270)' }}
+            style={{background: 'linear-gradient(to right, #8e2de2, #4a00e0)'}}
             onClick={() => updateSettings({
-              gradientColors: ['#FF6B6B', '#556270'],
-              gradientDirection: 'to right',
-              backgroundType: 'gradient'
+              gradientColors: ['#8e2de2', '#4a00e0'],
+              gradientDirection: 'to right'
             })}
-            title="Coral to Slate"
           ></button>
           <button
             className="preset-button"
-            style={{ background: 'linear-gradient(to right, #FEAC5E, #C779D0, #4BC0C8)' }}
+            style={{background: 'linear-gradient(to right, #f953c6, #b91d73)'}}
             onClick={() => updateSettings({
-              gradientColors: ['#FEAC5E', '#C779D0', '#4BC0C8'],
-              gradientDirection: 'to right',
-              backgroundType: 'gradient'
+              gradientColors: ['#f953c6', '#b91d73'],
+              gradientDirection: 'to right'
             })}
-            title="Sunset Vibes"
           ></button>
         </div>
 
@@ -745,110 +834,232 @@ function App() {
         )}
 
         {/* Custom Background Upload */}
-        <div className="setting-group">
-          <h2>Custom Background</h2>
-          {renderCustomBackgroundUpload()}
-        </div>
+        {(backgroundType === 'image' || backgroundType === 'video') && (
+          <div className="setting-group">
+            <h3>Custom Background</h3>
+            {renderCustomBackgroundUpload()}
+          </div>
+        )}
 
-        {/* Background Cycling */}
+        {/* Background Cycling Settings */}
+        {(backgroundType === 'image' || backgroundType === 'video') && backgrounds.length > 1 && (
+          <div className="setting-group">
+            <h3>Background Cycling</h3>
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={cyclingEnabled}
+                  onChange={(e) => handleCyclingEnabledChange(e)}
+                />
+                Enable background cycling
+              </label>
+            </div>
+            {cyclingEnabled && (
+              <>
+                <div className="setting-row">
+                  <label>
+                    Cycling Interval (seconds):
+                    <input
+                      type="number"
+                      min="5"
+                      max="3600"
+                      value={cyclingInterval}
+                      onChange={(e) => handleCyclingIntervalChange(e)}
+                    />
+                  </label>
+                </div>
+                <div className="setting-row">
+                  <label>
+                    <input
+                      type="radio"
+                      name="cyclingMode"
+                      value="sequential"
+                      checked={cyclingMode === 'sequential'}
+                      onChange={() => updateSettings({ cyclingMode: 'sequential' })}
+                    />
+                    Sequential
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      name="cyclingMode"
+                      value="random"
+                      checked={cyclingMode === 'random'}
+                      onChange={() => updateSettings({ cyclingMode: 'random' })}
+                    />
+                    Random
+                  </label>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* UI Element Visibility Settings */}
         <div className="setting-group">
-          <h2>Background Cycling</h2>
-          <button
-            id="addBackground"
-            onClick={() => document.getElementById('backgroundUploader')?.click()}
-          >
-            Add Images to Cycle
-          </button>
-          <button
-            id="shuffleMode"
-            onClick={handleShuffleMode}
-            className={cyclingMode === 'random' ? 'active' : ''}
-          >
-            Shuffle Mode
-          </button>
-          <div className="cycling-settings">
+          <h2>UI Element Visibility</h2>
+          <div className="setting-row">
             <label>
               <input
                 type="checkbox"
-                id="cyclingEnabled"
-                checked={cyclingEnabled}
-                onChange={handleCyclingEnabledChange}
+                checked={showSearchBar}
+                onChange={(e) => updateSettings({ showSearchBar: e.target.checked })}
               />
-              Enable Cycling
+              Show Search Bar
             </label>
-            <div className="cycling-interval">
-              <label htmlFor="cyclingInterval">Interval (seconds):</label>
+          </div>
+          <div className="setting-row">
+            <label>
               <input
-                type="number"
-                id="cyclingInterval"
-                min="10"
-                value={cyclingInterval}
-                onChange={handleCyclingIntervalChange}
+                type="checkbox"
+                checked={showWeather}
+                onChange={(e) => updateSettings({ showWeather: e.target.checked })}
               />
-            </div>
+              Show Weather Widget
+            </label>
           </div>
-          <h3>Backgrounds List ({backgrounds.length})</h3>
-          <div className="backgrounds-info">
-            <p>
-              {backgrounds.filter(bg => bg.type === 'image').length} Images,
-              {backgrounds.filter(bg => bg.type === 'video').length} Videos
-              {backgrounds.length > 0 && cyclingEnabled ? ' - Cycling Enabled' : ''}
-              {backgrounds.length > 0 && !cyclingEnabled ? ' - Cycling Disabled' : ''}
-            </p>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showTime}
+                onChange={(e) => updateSettings({ showTime: e.target.checked })}
+              />
+              Show Time
+            </label>
           </div>
-          <ul id="backgroundList" className="backgrounds-list">
-            {backgrounds.length === 0 ? (
-              <li className="empty-list">No backgrounds added yet</li>
-            ) : (
-              backgrounds.map((bg, index) => (
-                <li key={bg.id}>
-                  {bg.type.charAt(0).toUpperCase() + bg.type.slice(1)} Background {index + 1}
-                  <button onClick={() => handleRemoveFromList(index)}>Remove</button>
-                </li>
-              ))
-            )}
-          </ul>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showDate}
+                onChange={(e) => updateSettings({ showDate: e.target.checked })}
+              />
+              Show Date
+            </label>
+          </div>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showGreeting}
+                onChange={(e) => updateSettings({ showGreeting: e.target.checked })}
+              />
+              Show Greeting
+            </label>
+          </div>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showQuickLinks}
+                onChange={(e) => updateSettings({ showQuickLinks: e.target.checked })}
+              />
+              Show Quick Links
+            </label>
+          </div>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showQuote}
+                onChange={(e) => updateSettings({ showQuote: e.target.checked })}
+              />
+              Show Quote
+            </label>
+          </div>
         </div>
 
-        {/* Random Colors */}
+        {/* Quick Links Customization */}
         <div className="setting-group">
-          <h2>Random Colors</h2>
-          <button
-            id="randomSolidColor"
-            onClick={() => handleRandomColorType('solid')}
-            className={backgroundType === 'random' && randomSettings.type === 'solid' ? 'active' : ''}
-          >
-            Random Solid Color
-          </button>
-          <button
-            id="randomGradient"
-            onClick={() => handleRandomColorType('gradient')}
-            className={backgroundType === 'random' && randomSettings.type === 'gradient' ? 'active' : ''}
-          >
-            Random Gradient
-          </button>
-          <div className="gradient-options">
-            <button
-              className={`gradient-option ${randomSettings.gradientType === 'linear' ? 'active' : ''}`}
-              data-gradient="linear"
-              onClick={() => updateSetting('randomSettings', { ...randomSettings, gradientType: 'linear' }, setRandomSettings)}
-            >
-              Linear
-            </button>
-            <button
-              className={`gradient-option ${randomSettings.gradientType === 'radial' ? 'active' : ''}`}
-              data-gradient="radial"
-              onClick={() => updateSetting('randomSettings', { ...randomSettings, gradientType: 'radial' }, setRandomSettings)}
-            >
-              Radial
-            </button>
-            <button
-              className={`gradient-option ${randomSettings.gradientType !== 'linear' && randomSettings.gradientType !== 'radial' ? 'active' : ''}`}
-              data-gradient="diagonal"
-              onClick={() => updateSetting('randomSettings', { ...randomSettings, gradientType: 'diagonal' }, setRandomSettings)}
-            >
-              Diagonal
-            </button>
+          <h2>Customize Quick Links</h2>
+          <div className="quick-links-editor">
+            {quickLinks.map((link, index) => (
+              <div key={link.id} className="quick-link-edit-row">
+                <input
+                  type="text"
+                  placeholder="Icon (emoji)"
+                  value={link.icon}
+                  onChange={(e) => {
+                    const newLinks = [...quickLinks];
+                    newLinks[index] = { ...newLinks[index], icon: e.target.value };
+                    updateSettings({ quickLinks: newLinks });
+                  }}
+                  className="icon-input"
+                  maxLength={2}
+                />
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={link.name}
+                  onChange={(e) => {
+                    const newLinks = [...quickLinks];
+                    newLinks[index] = { ...newLinks[index], name: e.target.value };
+                    updateSettings({ quickLinks: newLinks });
+                  }}
+                  className="name-input"
+                />
+                <input
+                  type="url"
+                  placeholder="URL"
+                  value={link.url}
+                  onChange={(e) => {
+                    const newLinks = [...quickLinks];
+                    newLinks[index] = { ...newLinks[index], url: e.target.value };
+                    updateSettings({ quickLinks: newLinks });
+                  }}
+                  className="url-input"
+                />
+                <button
+                  onClick={() => {
+                    const newLinks = quickLinks.filter((_, i) => i !== index);
+                    updateSettings({ quickLinks: newLinks });
+                  }}
+                  className="delete-button"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {quickLinks.length < 8 && (
+              <button
+                onClick={() => {
+                  const newLinks = [...quickLinks, {
+                    id: Date.now().toString(),
+                    name: 'New Link',
+                    url: 'https://',
+                    icon: '🔗'
+                  }];
+                  updateSettings({ quickLinks: newLinks });
+                }}
+                className="add-link-button"
+              >
+                + Add Link
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Quote Settings */}
+        <div className="setting-group">
+          <h2>Quote Settings</h2>
+          <div className="setting-row">
+            <label>
+              Change quotes every:
+              <select
+                value={quoteChangeInterval}
+                onChange={(e) => updateSettings({
+                  quoteChangeInterval: parseInt(e.target.value)
+                })}
+              >
+                <option value="3600">1 hour</option>
+                <option value="21600">6 hours</option>
+                <option value="43200">12 hours</option>
+                <option value="86400">24 hours</option>
+                <option value="604800">1 week</option>
+              </select>
+            </label>
           </div>
         </div>
       </div>
@@ -859,26 +1070,33 @@ function App() {
   const getBackgroundStyle = () => {
     console.log('Getting background style for type:', backgroundType);
 
+    // Common background properties for all types
+    const baseBackgroundStyle = {
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    };
+
     switch (backgroundType) {
       case 'color':
-        return { backgroundColor };
+        return { ...baseBackgroundStyle, backgroundColor };
 
       case 'image':
         return backgroundImage
-          ? { backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-          : { backgroundColor: '#000' };
+          ? { ...baseBackgroundStyle, backgroundImage: `url(${backgroundImage})` }
+          : { ...baseBackgroundStyle, backgroundColor: '#000' };
 
       case 'gradient':
         const gradientValue = `linear-gradient(${gradientDirection}, ${gradientColors.join(', ')})`;
-        return { background: gradientValue };
+        return { ...baseBackgroundStyle, background: gradientValue };
 
       case 'video':
-        return { backgroundColor: 'transparent' }; // Changed to transparent for video background
+        return { ...baseBackgroundStyle, backgroundColor: 'transparent' }; // Changed to transparent for video background
 
       case 'random':
         if (randomSettings.type === 'solid') {
           const randomColor = generateRandomHexColor();
-          return { backgroundColor: randomColor };
+          return { ...baseBackgroundStyle, backgroundColor: randomColor };
         } else {
           const colors = [generateRandomHexColor(), generateRandomHexColor()];
           const direction = randomSettings.gradientType === 'radial'
@@ -888,11 +1106,11 @@ function App() {
               : '45deg';
 
           const gradientValue = `linear-gradient(${direction}, ${colors[0]}, ${colors[1]})`;
-          return { background: gradientValue };
+          return { ...baseBackgroundStyle, background: gradientValue };
         }
 
       default:
-        return { backgroundColor: '#000' };
+        return { ...baseBackgroundStyle, backgroundColor: '#000' };
     }
   };
 
@@ -1452,6 +1670,29 @@ function App() {
     return () => chrome.storage.onChanged.removeListener(handleChromeStorageChange);
   }, []);
 
+  // Add an effect for quote rotation
+  useEffect(() => {
+    // Only change quotes if they're visible and we have quotes to display
+    if (showQuote && quotes.length > 0) {
+      // Setup interval to change quotes
+      const interval = setInterval(() => {
+        const nextIndex = (currentQuoteIndex + 1) % quotes.length;
+        setCurrentQuoteIndex(nextIndex);
+        updateSettings({ currentQuoteIndex: nextIndex });
+      }, quoteChangeInterval * 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [showQuote, quotes, currentQuoteIndex, quoteChangeInterval]);
+
+  // Helper function to get current quote
+  const getCurrentQuote = () => {
+    if (quotes.length === 0) {
+      return { text: 'The only way to do great work is to love what you do.', author: 'Steve Jobs' };
+    }
+    return quotes[currentQuoteIndex];
+  };
+
   return isPopup ? renderPopupUI() : (
     <div
       className="app"
@@ -1476,13 +1717,15 @@ function App() {
       )}
 
       {/* Weather Widget */}
-      <div className="weather-widget">
-        <div className="weather-icon">☀️</div>
-        <div className="weather-info">
-          <div className="weather-temp">{weather.temp}</div>
-          <div className="weather-location">{weather.location}</div>
+      {showWeather && (
+        <div className="weather-widget">
+          <div className="weather-icon">☀️</div>
+          <div className="weather-info">
+            <div className="weather-temp">{weather.temp}</div>
+            <div className="weather-location">{weather.location}</div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Settings toggle button */}
       <button
@@ -1494,48 +1737,44 @@ function App() {
       </button>
 
       {/* Clock Widget */}
-      <div className="clock-widget">{formatTime()}</div>
-      <div className="date-widget">{formatDate()}</div>
+      {showTime && <div className="clock-widget">{formatTime()}</div>}
+      {showDate && <div className="date-widget">{formatDate()}</div>}
 
       {/* Greeting */}
-      <div className="greeting">{greeting}</div>
+      {showGreeting && <div className="greeting">{greeting}</div>}
 
       {/* Search Box */}
-      <form className="search-box" onSubmit={handleSearch}>
-        <input
-          type="text"
-          name="search"
-          className="search-input"
-          placeholder="Search the web..."
-          autoComplete="off"
-        />
-      </form>
+      {showSearchBar && (
+        <form className="search-box" onSubmit={handleSearch}>
+          <input
+            type="text"
+            name="search"
+            className="search-input"
+            placeholder="Search the web..."
+            autoComplete="off"
+          />
+        </form>
+      )}
 
       {/* Quick Links */}
-      <div className="quick-links">
-        <a href="https://mail.google.com" className="quick-link">
-          <div className="quick-link-icon">📧</div>
-          <div className="quick-link-text">Gmail</div>
-        </a>
-        <a href="https://drive.google.com" className="quick-link">
-          <div className="quick-link-icon">📁</div>
-          <div className="quick-link-text">Drive</div>
-        </a>
-        <a href="https://calendar.google.com" className="quick-link">
-          <div className="quick-link-icon">📅</div>
-          <div className="quick-link-text">Calendar</div>
-        </a>
-        <a href="https://youtube.com" className="quick-link">
-          <div className="quick-link-icon">📺</div>
-          <div className="quick-link-text">YouTube</div>
-        </a>
-      </div>
+      {showQuickLinks && quickLinks.length > 0 && (
+        <div className="quick-links">
+          {quickLinks.map(link => (
+            <a key={link.id} href={link.url} className="quick-link">
+              <div className="quick-link-icon">{link.icon}</div>
+              <div className="quick-link-text">{link.name}</div>
+            </a>
+          ))}
+        </div>
+      )}
 
       {/* Quote Widget */}
-      <div className="quotes-widget">
-        <div className="quote-text">"{quote.text}"</div>
-        <div className="quote-author">— {quote.author}</div>
-      </div>
+      {showQuote && (
+        <div className="quotes-widget">
+          <div className="quote-text">"{getCurrentQuote().text}"</div>
+          <div className="quote-author">— {getCurrentQuote().author}</div>
+        </div>
+      )}
 
       {/* Drag & drop overlay */}
       {isDragging && (
@@ -1549,30 +1788,31 @@ function App() {
         <div ref={settingsPanelRef} className="settings-panel">
           <h2>New Tab Settings</h2>
 
+          {/* Background Type Section */}
           <div className="setting-group">
             <h3>Background Type</h3>
             <div className="background-options">
               <button
                 className={`background-option ${backgroundType === 'color' ? 'active' : ''}`}
-                onClick={() => updateSettings({ backgroundType: 'color' })}
+                onClick={() => handleBackgroundTypeChange('color')}
               >
                 Solid Color
               </button>
               <button
                 className={`background-option ${backgroundType === 'image' ? 'active' : ''}`}
-                onClick={() => updateSettings({ backgroundType: 'image' })}
+                onClick={() => handleBackgroundTypeChange('image')}
               >
                 Image
               </button>
               <button
                 className={`background-option ${backgroundType === 'gradient' ? 'active' : ''}`}
-                onClick={() => updateSettings({ backgroundType: 'gradient' })}
+                onClick={() => handleBackgroundTypeChange('gradient')}
               >
                 Gradient
               </button>
               <button
                 className={`background-option ${backgroundType === 'video' ? 'active' : ''}`}
-                onClick={() => updateSettings({ backgroundType: 'video' })}
+                onClick={() => handleBackgroundTypeChange('video')}
               >
                 Video
               </button>
@@ -1583,12 +1823,7 @@ function App() {
           {backgroundType === 'color' && (
             <div className="setting-group">
               <h3>Background Color</h3>
-              <input
-                type="color"
-                value={backgroundColor}
-                onChange={handleColorChange}
-              />
-              <span className="color-value">{backgroundColor}</span>
+              {renderColorPicker()}
             </div>
           )}
 
@@ -1607,6 +1842,227 @@ function App() {
               {renderCustomBackgroundUpload()}
             </div>
           )}
+
+          {/* Background Cycling Settings - Only show once under Image/Video section */}
+          {(backgroundType === 'image' || backgroundType === 'video') && backgrounds.length > 1 && (
+            <div className="setting-group">
+              <h3>Background Cycling</h3>
+              <div className="setting-row">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={cyclingEnabled}
+                    onChange={(e) => handleCyclingEnabledChange(e)}
+                  />
+                  Enable background cycling
+                </label>
+              </div>
+              {cyclingEnabled && (
+                <>
+                  <div className="setting-row">
+                    <label>
+                      Cycling Interval (seconds):
+                      <input
+                        type="number"
+                        min="5"
+                        max="3600"
+                        value={cyclingInterval}
+                        onChange={(e) => handleCyclingIntervalChange(e)}
+                      />
+                    </label>
+                  </div>
+                  <div className="setting-row">
+                    <label>
+                      <input
+                        type="radio"
+                        name="cyclingMode"
+                        value="sequential"
+                        checked={cyclingMode === 'sequential'}
+                        onChange={() => updateSettings({ cyclingMode: 'sequential' })}
+                      />
+                      Sequential
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="cyclingMode"
+                        value="random"
+                        checked={cyclingMode === 'random'}
+                        onChange={() => updateSettings({ cyclingMode: 'random' })}
+                      />
+                      Random
+                    </label>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* General Settings Section */}
+          <div className="setting-group">
+            <h3>General Settings</h3>
+
+            {/* UI Element Visibility Settings */}
+            <h4>UI Element Visibility</h4>
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showSearchBar}
+                  onChange={(e) => updateSettings({ showSearchBar: e.target.checked })}
+                />
+                Show Search Bar
+              </label>
+            </div>
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showWeather}
+                  onChange={(e) => updateSettings({ showWeather: e.target.checked })}
+                />
+                Show Weather Widget
+              </label>
+            </div>
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showTime}
+                  onChange={(e) => updateSettings({ showTime: e.target.checked })}
+                />
+                Show Time
+              </label>
+            </div>
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showDate}
+                  onChange={(e) => updateSettings({ showDate: e.target.checked })}
+                />
+                Show Date
+              </label>
+            </div>
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showGreeting}
+                  onChange={(e) => updateSettings({ showGreeting: e.target.checked })}
+                />
+                Show Greeting
+              </label>
+            </div>
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showQuickLinks}
+                  onChange={(e) => updateSettings({ showQuickLinks: e.target.checked })}
+                />
+                Show Quick Links
+              </label>
+            </div>
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={showQuote}
+                  onChange={(e) => updateSettings({ showQuote: e.target.checked })}
+                />
+                Show Quote
+              </label>
+            </div>
+
+            {/* Quick Links Customization */}
+            <h4>Customize Quick Links</h4>
+            <div className="quick-links-editor">
+              {quickLinks.map((link, index) => (
+                <div key={link.id} className="quick-link-edit-row">
+                  <input
+                    type="text"
+                    placeholder="Icon (emoji)"
+                    value={link.icon}
+                    onChange={(e) => {
+                      const newLinks = [...quickLinks];
+                      newLinks[index] = { ...newLinks[index], icon: e.target.value };
+                      updateSettings({ quickLinks: newLinks });
+                    }}
+                    className="icon-input"
+                    maxLength={2}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Name"
+                    value={link.name}
+                    onChange={(e) => {
+                      const newLinks = [...quickLinks];
+                      newLinks[index] = { ...newLinks[index], name: e.target.value };
+                      updateSettings({ quickLinks: newLinks });
+                    }}
+                    className="name-input"
+                  />
+                  <input
+                    type="url"
+                    placeholder="URL"
+                    value={link.url}
+                    onChange={(e) => {
+                      const newLinks = [...quickLinks];
+                      newLinks[index] = { ...newLinks[index], url: e.target.value };
+                      updateSettings({ quickLinks: newLinks });
+                    }}
+                    className="url-input"
+                  />
+                  <button
+                    onClick={() => {
+                      const newLinks = quickLinks.filter((_, i) => i !== index);
+                      updateSettings({ quickLinks: newLinks });
+                    }}
+                    className="delete-button"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              {quickLinks.length < 8 && (
+                <button
+                  onClick={() => {
+                    const newLinks = [...quickLinks, {
+                      id: Date.now().toString(),
+                      name: 'New Link',
+                      url: 'https://',
+                      icon: '🔗'
+                    }];
+                    updateSettings({ quickLinks: newLinks });
+                  }}
+                  className="add-link-button"
+                >
+                  + Add Link
+                </button>
+              )}
+            </div>
+
+            {/* Quote Settings */}
+            <h4>Quote Settings</h4>
+            <div className="setting-row">
+              <label>
+                Change quotes every:
+                <select
+                  value={quoteChangeInterval}
+                  onChange={(e) => updateSettings({
+                    quoteChangeInterval: parseInt(e.target.value)
+                  })}
+                >
+                  <option value="3600">1 hour</option>
+                  <option value="21600">6 hours</option>
+                  <option value="43200">12 hours</option>
+                  <option value="86400">24 hours</option>
+                  <option value="604800">1 week</option>
+                </select>
+              </label>
+            </div>
+          </div>
         </div>
       )}
     </div>

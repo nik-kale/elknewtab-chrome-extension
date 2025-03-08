@@ -5,6 +5,30 @@ All notable changes to the Elk New Tab extension will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2024-03-08
+
+### Added
+- UI element visibility toggles (search bar, weather, time, date, greeting, quick links, quote)
+- Customizable quick links with ability to edit icons, names, and URLs
+- Dynamic quote system with 50+ inspirational quotes
+- Configurable quote rotation intervals (1 hour, 6 hours, 12 hours, 24 hours, 1 week)
+- Add up to 8 custom quick links
+
+### Changed
+- Reorganized settings panel with new "General Settings" section
+- Improved background-type persistence when cycling is enabled
+- Enhanced responsive design for settings panel
+- Improved scrolling experience with styled scrollbars
+- Better visual hierarchy with clearer section headings
+- Ensured all gradient presets are visible and accessible
+
+### Fixed
+- Fixed issue where background type wasn't preserved during cycling
+- Removed duplicate settings sections across different background types
+- Ensured background images always fit browser window with proper scaling
+- Fixed settings panel scrolling and display on different screen sizes
+- Improved settings organization to prevent confusion
+
 ## [1.4.0] - 2023-12-15
 
 ### Added

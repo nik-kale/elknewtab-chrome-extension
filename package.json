@@ -1,6 +1,6 @@
 {
   "name": "elknewtab-chrome-extension",
-  "version": "1.0.0",
+  "version": "1.5.0",
   "description": "Elk New Tab is a Chrome Extension that replaces the default new tab page with a fully customizable experience",
   "type": "module",
   "scripts": {
