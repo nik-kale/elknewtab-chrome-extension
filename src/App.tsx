@@ -19,8 +19,16 @@ import { validateUrl, sanitizeHtml } from './utils/validation'
 import { fetchFavicon } from './utils/faviconFetcher'
 import { encryptApiKey, decryptApiKey, validateInputLength } from './utils/security'
 import { preconnectToDomains, runWhenIdle, isSlowConnection, getPerformanceMetrics } from './utils/performanceOptimizations'
-import { getRecentColors, shouldShowBackupReminder } from './utils/uxEnhancements'
+import { getRecentColors, shouldShowBackupReminder, formatTime as formatTimeUtil, getGreetingMessage } from './utils/uxEnhancements'
 import './styles/darkMode.css'
+
+// Import new widgets
+import PomodoroTimer from './components/PomodoroTimer'
+import TodoWidget from './components/TodoWidget'
+import NotesWidget from './components/NotesWidget'
+import WorldClockWidget from './components/WorldClockWidget'
+import HabitTrackerWidget from './components/HabitTrackerWidget'
+import FocusModeWidget from './components/FocusModeWidget'
 
 // Add Chrome API type declarations to suppress TypeScript errors
 declare namespace chrome {
@@ -88,11 +96,11 @@ function App() {
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false)
   const [keyboardShortcutsEnabled, setKeyboardShortcutsEnabled] = useState<boolean>(true)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false)
-  // Time format will be added in future update: const [timeFormat, setTimeFormat]
+  const [timeFormat, setTimeFormat] = useState<'12h' | '24h'>('12h')
   const [, setRecentColors] = useState<string[]>([])
   const [, setShowBackupReminder] = useState<boolean>(false)
-  // Video controls: const [videoControls, setVideoControls]
-  // Custom greeting: const [customGreeting, setCustomGreeting]
+  const [videoPlaybackRate, setVideoPlaybackRate] = useState<number>(1.0)
+  const [customGreeting, setCustomGreeting] = useState<string>('')
 
   // Time and date state
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -112,6 +120,14 @@ function App() {
   const [showGreeting, setShowGreeting] = useState<boolean>(true)
   const [showQuickLinks, setShowQuickLinks] = useState<boolean>(true)
   const [showQuote, setShowQuote] = useState<boolean>(true)
+
+  // New widget visibility states
+  const [showPomodoro, setShowPomodoro] = useState<boolean>(false)
+  const [showTodo, setShowTodo] = useState<boolean>(false)
+  const [showNotes, setShowNotes] = useState<boolean>(false)
+  const [showWorldClock, setShowWorldClock] = useState<boolean>(false)
+  const [showHabitTracker, setShowHabitTracker] = useState<boolean>(false)
+  const [showFocusMode, setShowFocusMode] = useState<boolean>(false)
 
   // Custom quick links
   const [quickLinks, setQuickLinks] = useState<Array<{id: string, name: string, url: string, icon: string}>>([
@@ -180,6 +196,7 @@ function App() {
   // Add useRef for the settings panel
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const settingsToggleRef = useRef<HTMLButtonElement>(null);
+  const videoBackgroundRef = useRef<HTMLVideoElement>(null);
 
   // Add a constant for storage keys to avoid typos
   const STORAGE_KEYS = {
@@ -210,9 +227,15 @@ function App() {
     SEARCH_ENGINE: 'searchEngine',
     DARK_MODE: 'darkMode',
     KEYBOARD_SHORTCUTS_ENABLED: 'keyboardShortcutsEnabled',
-    // TIME_FORMAT: 'timeFormat',
-    // VIDEO_CONTROLS: 'videoControls',
-    // CUSTOM_GREETING: 'customGreeting'
+    SHOW_POMODORO: 'showPomodoro',
+    SHOW_TODO: 'showTodo',
+    SHOW_NOTES: 'showNotes',
+    SHOW_WORLD_CLOCK: 'showWorldClock',
+    SHOW_HABIT_TRACKER: 'showHabitTracker',
+    SHOW_FOCUS_MODE: 'showFocusMode',
+    TIME_FORMAT: 'timeFormat',
+    VIDEO_PLAYBACK_RATE: 'videoPlaybackRate',
+    CUSTOM_GREETING: 'customGreeting'
   };
 
   // Add click outside handler
@@ -431,9 +454,15 @@ function App() {
       STORAGE_KEYS.SEARCH_ENGINE,
       STORAGE_KEYS.DARK_MODE,
       STORAGE_KEYS.KEYBOARD_SHORTCUTS_ENABLED,
-      // STORAGE_KEYS.TIME_FORMAT,
-      // STORAGE_KEYS.VIDEO_CONTROLS,
-      // STORAGE_KEYS.CUSTOM_GREETING
+      STORAGE_KEYS.SHOW_POMODORO,
+      STORAGE_KEYS.SHOW_TODO,
+      STORAGE_KEYS.SHOW_NOTES,
+      STORAGE_KEYS.SHOW_WORLD_CLOCK,
+      STORAGE_KEYS.SHOW_HABIT_TRACKER,
+      STORAGE_KEYS.SHOW_FOCUS_MODE,
+      STORAGE_KEYS.TIME_FORMAT,
+      STORAGE_KEYS.VIDEO_PLAYBACK_RATE,
+      STORAGE_KEYS.CUSTOM_GREETING
     ], (result) => {
       console.log('Loaded settings from sync storage:', result);
 
@@ -469,6 +498,14 @@ function App() {
       if (result.showQuickLinks !== undefined) setShowQuickLinks(result.showQuickLinks);
       if (result.showQuote !== undefined) setShowQuote(result.showQuote);
 
+      // Load new widget visibility settings
+      if (result.showPomodoro !== undefined) setShowPomodoro(result.showPomodoro);
+      if (result.showTodo !== undefined) setShowTodo(result.showTodo);
+      if (result.showNotes !== undefined) setShowNotes(result.showNotes);
+      if (result.showWorldClock !== undefined) setShowWorldClock(result.showWorldClock);
+      if (result.showHabitTracker !== undefined) setShowHabitTracker(result.showHabitTracker);
+      if (result.showFocusMode !== undefined) setShowFocusMode(result.showFocusMode);
+
       // Load quick links and quotes
       if (result.quickLinks) setQuickLinks(result.quickLinks);
       if (result.quotes) setQuotes(result.quotes);
@@ -484,9 +521,9 @@ function App() {
       if (result.searchEngine) setSearchEngine(result.searchEngine);
       if (result.darkMode !== undefined) setDarkMode(result.darkMode);
       if (result.keyboardShortcutsEnabled !== undefined) setKeyboardShortcutsEnabled(result.keyboardShortcutsEnabled);
-      // if (result.timeFormat) setTimeFormat(result.timeFormat);
-      // if (result.videoControls) setVideoControls(result.videoControls);
-      // if (result.customGreeting) setCustomGreeting(result.customGreeting);
+      if (result.timeFormat) setTimeFormat(result.timeFormat);
+      if (result.videoPlaybackRate) setVideoPlaybackRate(result.videoPlaybackRate);
+      if (result.customGreeting) setCustomGreeting(result.customGreeting);
 
       // Then load media files from local storage (larger data)
       chrome.storage.local.get([
@@ -748,8 +785,42 @@ function App() {
           setKeyboardShortcutsEnabled(value);
           nonMediaSettings[key] = value;
           break;
-        // Future features (will be uncommented when UI is added):
-        // case STORAGE_KEYS.TIME_FORMAT, VIDEO_CONTROLS, CUSTOM_GREETING
+        case STORAGE_KEYS.SHOW_POMODORO:
+          setShowPomodoro(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_TODO:
+          setShowTodo(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_NOTES:
+          setShowNotes(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_WORLD_CLOCK:
+          setShowWorldClock(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_HABIT_TRACKER:
+          setShowHabitTracker(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SHOW_FOCUS_MODE:
+          setShowFocusMode(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.TIME_FORMAT:
+          setTimeFormat(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.VIDEO_PLAYBACK_RATE:
+          setVideoPlaybackRate(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.CUSTOM_GREETING:
+          setCustomGreeting(value);
+          nonMediaSettings[key] = value;
+          break;
       }
     });
 
@@ -1195,6 +1266,71 @@ function App() {
           </div>
         </div>
 
+        {/* Productivity Widgets */}
+        <div className="setting-group">
+          <h2>Productivity Widgets</h2>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showPomodoro}
+                onChange={(e) => updateSettings({ showPomodoro: e.target.checked })}
+              />
+              🍅 Show Pomodoro Timer
+            </label>
+          </div>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showTodo}
+                onChange={(e) => updateSettings({ showTodo: e.target.checked })}
+              />
+              ✅ Show Todo List
+            </label>
+          </div>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showNotes}
+                onChange={(e) => updateSettings({ showNotes: e.target.checked })}
+              />
+              📝 Show Notes
+            </label>
+          </div>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showWorldClock}
+                onChange={(e) => updateSettings({ showWorldClock: e.target.checked })}
+              />
+              🌍 Show World Clock
+            </label>
+          </div>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showHabitTracker}
+                onChange={(e) => updateSettings({ showHabitTracker: e.target.checked })}
+              />
+              💪 Show Habit Tracker
+            </label>
+          </div>
+          <div className="setting-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={showFocusMode}
+                onChange={(e) => updateSettings({ showFocusMode: e.target.checked })}
+              />
+              🎯 Show Focus Mode
+            </label>
+          </div>
+        </div>
+
         {/* Quick Links Customization */}
         <div className="setting-group">
           <h2>Customize Quick Links</h2>
@@ -1345,9 +1481,7 @@ function App() {
 
   // Format time as HH:MM
   const formatTime = () => {
-    const hours = currentTime.getHours();
-    const minutes = currentTime.getMinutes();
-    return `${hours}:${minutes < 10 ? '0' + minutes : minutes}`;
+    return formatTimeUtil(currentTime, timeFormat);
   };
 
   // Format date as Day, Month Date
@@ -1381,21 +1515,23 @@ function App() {
     return () => clearInterval(timer)
   }, [])
 
-  // Set greeting based on time of day
+  // Set greeting based on time of day or custom greeting
   useEffect(() => {
-    const hour = currentTime.getHours()
-    let newGreeting = ''
-
-    if (hour >= 5 && hour < 12) {
-      newGreeting = 'Good morning'
-    } else if (hour >= 12 && hour < 18) {
-      newGreeting = 'Good afternoon'
+    if (customGreeting) {
+      setGreeting(customGreeting)
     } else {
-      newGreeting = 'Good evening'
+      const hour = currentTime.getHours()
+      const newGreeting = getGreetingMessage(hour)
+      setGreeting(newGreeting)
     }
+  }, [currentTime, customGreeting])
 
-    setGreeting(newGreeting)
-  }, [currentTime])
+  // Apply video playback rate
+  useEffect(() => {
+    if (videoBackgroundRef.current) {
+      videoBackgroundRef.current.playbackRate = videoPlaybackRate;
+    }
+  }, [videoPlaybackRate, backgroundVideo])
 
   // Drag and drop handlers
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -1943,6 +2079,7 @@ function App() {
       {/* Video background if selected */}
       {backgroundType === 'video' && backgroundVideo && (
         <video
+          ref={videoBackgroundRef}
           key={backgroundVideo}
           autoPlay
           loop
@@ -2035,6 +2172,26 @@ function App() {
           <div className="quote-author">— {getCurrentQuote().author}</div>
         </div>
       )}
+
+      {/* Productivity Widgets Container */}
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        zIndex: 100,
+        maxHeight: '80vh',
+        overflowY: 'auto'
+      }}>
+        {showPomodoro && <PomodoroTimer />}
+        {showTodo && <TodoWidget />}
+        {showNotes && <NotesWidget />}
+        {showWorldClock && <WorldClockWidget />}
+        {showHabitTracker && <HabitTrackerWidget />}
+        {showFocusMode && <FocusModeWidget />}
+      </div>
 
       {/* Drag & drop overlay */}
       {isDragging && (
@@ -2498,6 +2655,70 @@ function App() {
                 </div>
               )}
             </div>
+
+            {/* Time Format */}
+            <div className="setting-row">
+              <label>
+                Time Format:
+                <select
+                  value={timeFormat}
+                  onChange={(e) => {
+                    const format = e.target.value as '12h' | '24h';
+                    setTimeFormat(format);
+                    saveSetting(STORAGE_KEYS.TIME_FORMAT, format);
+                  }}
+                  style={{ width: '100%', marginTop: '5px' }}
+                >
+                  <option value="12h">12-hour (AM/PM)</option>
+                  <option value="24h">24-hour</option>
+                </select>
+              </label>
+            </div>
+
+            {/* Custom Greeting */}
+            <div className="setting-row">
+              <label>
+                Custom Greeting (leave empty for default):
+                <input
+                  type="text"
+                  placeholder="e.g., Welcome back!"
+                  value={customGreeting}
+                  onChange={(e) => {
+                    const greeting = e.target.value;
+                    setCustomGreeting(greeting);
+                    saveSetting(STORAGE_KEYS.CUSTOM_GREETING, greeting);
+                  }}
+                  style={{ width: '100%', marginTop: '5px' }}
+                  maxLength={100}
+                />
+              </label>
+            </div>
+
+            {/* Video Playback Speed */}
+            {backgroundType === 'video' && backgroundVideo && (
+              <div className="setting-row">
+                <label>
+                  Video Playback Speed: {videoPlaybackRate.toFixed(2)}x
+                  <input
+                    type="range"
+                    min="0.25"
+                    max="2"
+                    step="0.25"
+                    value={videoPlaybackRate}
+                    onChange={(e) => {
+                      const rate = parseFloat(e.target.value);
+                      setVideoPlaybackRate(rate);
+                      saveSetting(STORAGE_KEYS.VIDEO_PLAYBACK_RATE, rate);
+                    }}
+                    style={{ width: '100%', marginTop: '5px' }}
+                  />
+                </label>
+                <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '5px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>0.25x (Slower)</span>
+                  <span>2x (Faster)</span>
+                </div>
+              </div>
+            )}
 
             {/* Unsplash Browser Button */}
             <div className="setting-row">
