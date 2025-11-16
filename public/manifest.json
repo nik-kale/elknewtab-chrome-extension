@@ -26,6 +26,12 @@
     "activeTab",
     "unlimitedStorage"
   ],
+  "host_permissions": [
+    "https://api.openweathermap.org/*",
+    "https://api.unsplash.com/*",
+    "https://*.google.com/*",
+    "https://favicons.githubusercontent.com/*"
+  ],
   "web_accessible_resources": [
     {
       "resources": ["index.html", "popup.html", "popup.js", "icons/*", "assets/*"],
