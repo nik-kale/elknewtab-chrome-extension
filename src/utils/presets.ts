@@ -6,6 +6,7 @@ export interface PresetConfig {
   id: string;
   name: string;
   description: string;
+  icon: string;
   settings: Record<string, any>;
 }
 
@@ -14,6 +15,7 @@ export const PRESET_CONFIGS: PresetConfig[] = [
     id: 'minimal',
     name: 'Minimal',
     description: 'Clean and simple - just the essentials',
+    icon: '✨',
     settings: {
       backgroundType: 'color',
       backgroundColor: '#1a1a1a',
@@ -31,6 +33,7 @@ export const PRESET_CONFIGS: PresetConfig[] = [
     id: 'productivity',
     name: 'Productivity',
     description: 'Optimized for getting things done',
+    icon: '⚡',
     settings: {
       backgroundType: 'gradient',
       gradientColors: ['#2c3e50', '#3498db'],
@@ -49,6 +52,7 @@ export const PRESET_CONFIGS: PresetConfig[] = [
     id: 'aesthetic',
     name: 'Aesthetic',
     description: 'Beautiful and inspiring',
+    icon: '🎨',
     settings: {
       backgroundType: 'image',
       showWeather: true,
@@ -65,6 +69,7 @@ export const PRESET_CONFIGS: PresetConfig[] = [
     id: 'focus',
     name: 'Focus Mode',
     description: 'Minimize distractions',
+    icon: '🎯',
     settings: {
       backgroundType: 'color',
       backgroundColor: '#f5f5f5',
@@ -82,6 +87,7 @@ export const PRESET_CONFIGS: PresetConfig[] = [
     id: 'dashboard',
     name: 'Dashboard',
     description: 'All features enabled',
+    icon: '📊',
     settings: {
       backgroundType: 'gradient',
       gradientColors: ['#667eea', '#764ba2'],
@@ -176,6 +182,7 @@ export async function createCustomPreset(name: string, description: string): Pro
         id: `custom_${Date.now()}`,
         name,
         description,
+        icon: '⭐',
         settings
       };
 

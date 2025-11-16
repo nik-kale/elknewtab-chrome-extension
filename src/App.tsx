@@ -10,6 +10,13 @@ import { compressImage } from './utils/imageCompression'
 import UnsplashBrowser from './components/UnsplashBrowser'
 import ConfirmDialog from './components/ConfirmDialog'
 import { checkForUpdates, showUpdateNotification } from './utils/updates'
+import { PRESET_CONFIGS, applyPreset } from './utils/presets'
+import { hasCompletedOnboarding, completeOnboarding } from './utils/onboarding'
+import { needsMigration, migrateData } from './utils/migration'
+import { trackEvent } from './utils/analytics'
+import { trackError } from './utils/errorTracking'
+import { validateUrl, sanitizeHtml } from './utils/validation'
+import { fetchFavicon } from './utils/faviconFetcher'
 import './styles/darkMode.css'
 
 // Add Chrome API type declarations to suppress TypeScript errors
@@ -77,6 +84,7 @@ function App() {
   const [showUnsplashBrowser, setShowUnsplashBrowser] = useState<boolean>(false)
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false)
   const [keyboardShortcutsEnabled, setKeyboardShortcutsEnabled] = useState<boolean>(true)
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false)
 
   // Time and date state
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -262,6 +270,77 @@ function App() {
       toast.error(storageWarning);
     }
   }, [storageWarning]);
+
+  // Global error handler for analytics and error tracking
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      trackError(event.error || new Error(event.message), {
+        type: 'unhandled_error',
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno
+      });
+    };
+
+    const handlePromiseRejection = (event: PromiseRejectionEvent) => {
+      trackError(new Error(String(event.reason)), {
+        type: 'unhandled_promise_rejection'
+      });
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handlePromiseRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handlePromiseRejection);
+    };
+  }, []);
+
+  // Check for migration and onboarding on mount
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        // Check if migration is needed
+        if (await needsMigration()) {
+          const result = await migrateData();
+          if (result.success) {
+            toast.success('Migration completed successfully!');
+            trackEvent('migration_completed', { success: true });
+          }
+        }
+
+        // Check if onboarding should be shown
+        if (!(await hasCompletedOnboarding())) {
+          setShowOnboarding(true);
+        }
+
+        // Track session start
+        trackEvent('session_start', {});
+      } catch (error) {
+        trackError(error as Error, { context: 'initialization' });
+      }
+    };
+
+    initialize();
+  }, []);
+
+  // Track page visibility for analytics
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        trackEvent('tab_hidden', {});
+      } else {
+        trackEvent('tab_visible', {});
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Load settings from Chrome storage on initial mount
   useEffect(() => {
@@ -1238,6 +1317,10 @@ function App() {
     e.preventDefault();
     const searchValue = (e.currentTarget.elements.namedItem('search') as HTMLInputElement).value;
     if (searchValue.trim()) {
+      trackEvent('search_performed', {
+        engine: searchEngine,
+        queryLength: searchValue.length
+      });
       performSearch(searchValue, searchEngine);
     }
   };
@@ -1855,7 +1938,13 @@ function App() {
       <button
         ref={settingsToggleRef}
         className="settings-toggle"
-        onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+        onClick={() => {
+          const newState = !isSettingsOpen;
+          setIsSettingsOpen(newState);
+          trackEvent(newState ? 'settings_opened' : 'settings_closed', {});
+        }}
+        aria-label={isSettingsOpen ? 'Close settings' : 'Open settings'}
+        aria-expanded={isSettingsOpen}
       >
         {isSettingsOpen ? '×' : '⚙'}
       </button>
@@ -2121,9 +2210,11 @@ function App() {
                     placeholder="Name"
                     value={link.name}
                     onChange={(e) => {
+                      const sanitizedName = sanitizeHtml(e.target.value);
                       const newLinks = [...quickLinks];
-                      newLinks[index] = { ...newLinks[index], name: e.target.value };
+                      newLinks[index] = { ...newLinks[index], name: sanitizedName };
                       updateSettings({ quickLinks: newLinks });
+                      trackEvent('quick_link_name_changed', { linkId: link.id });
                     }}
                     className="name-input"
                   />
@@ -2135,6 +2226,30 @@ function App() {
                       const newLinks = [...quickLinks];
                       newLinks[index] = { ...newLinks[index], url: e.target.value };
                       updateSettings({ quickLinks: newLinks });
+                    }}
+                    onBlur={async (e) => {
+                      const url = e.target.value;
+                      const validUrl = validateUrl(url);
+
+                      if (validUrl) {
+                        // Fetch favicon for the URL
+                        try {
+                          const faviconUrl = await fetchFavicon(validUrl);
+                          const newLinks = [...quickLinks];
+                          newLinks[index] = {
+                            ...newLinks[index],
+                            url: validUrl,
+                            icon: link.icon === '🔗' ? '🌐' : link.icon // Keep custom icon if set
+                          };
+                          updateSettings({ quickLinks: newLinks });
+                          trackEvent('quick_link_url_validated', { linkId: link.id, hasCustomFavicon: faviconUrl !== '' });
+                        } catch (error) {
+                          trackError(error as Error, { context: 'favicon_fetch', url: validUrl });
+                        }
+                      } else if (url && url !== 'https://') {
+                        toast.error('Invalid URL. Please enter a valid URL starting with http:// or https://');
+                        trackEvent('quick_link_validation_failed', { url });
+                      }
                     }}
                     className="url-input"
                   />
@@ -2185,6 +2300,56 @@ function App() {
                   <option value="604800">1 week</option>
                 </select>
               </label>
+            </div>
+          </div>
+
+          {/* Preset Configurations */}
+          <div className="setting-group">
+            <h3>Quick Presets</h3>
+            <div style={{ fontSize: '12px', opacity: 0.7, marginBottom: '10px' }}>
+              Apply pre-configured themes instantly
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+              {PRESET_CONFIGS.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={async () => {
+                    try {
+                      await applyPreset(preset.id);
+                      toast.success(`Applied ${preset.name} preset!`);
+                      trackEvent('preset_applied', { presetId: preset.id });
+                      // Reload to apply changes
+                      setTimeout(() => window.location.reload(), 500);
+                    } catch (error) {
+                      toast.error('Failed to apply preset');
+                      trackError(error as Error, { context: 'apply_preset', presetId: preset.id });
+                    }
+                  }}
+                  style={{
+                    padding: '15px 10px',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    background: 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    textAlign: 'center'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{ fontSize: '24px', marginBottom: '5px' }}>{preset.icon}</div>
+                  <div style={{ fontWeight: 600, fontSize: '14px' }}>{preset.name}</div>
+                  <div style={{ fontSize: '11px', opacity: 0.7, marginTop: '3px' }}>
+                    {preset.description}
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -2398,15 +2563,107 @@ function App() {
             try {
               await resetSettings();
               toast.success('All settings reset! Reloading...');
+              trackEvent('settings_reset', {});
               setTimeout(() => window.location.reload(), 1000);
             } catch (error) {
               console.error('Reset error:', error);
               toast.error('Failed to reset settings');
+              trackError(error as Error, { context: 'reset_settings' });
             }
             setShowResetConfirm(false);
           }}
           onCancel={() => setShowResetConfirm(false)}
         />
+      )}
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '40px',
+              maxWidth: '600px',
+              width: '100%',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              textAlign: 'center'
+            }}
+          >
+            <div style={{ fontSize: '64px', marginBottom: '20px' }}>👋</div>
+            <h2 style={{ fontSize: '32px', marginBottom: '16px', color: '#333' }}>
+              Welcome to Elk New Tab!
+            </h2>
+            <p style={{ fontSize: '16px', color: '#666', lineHeight: '1.6', marginBottom: '30px' }}>
+              Your new tab experience just got a major upgrade with 90+ features including:
+            </p>
+            <div style={{ textAlign: 'left', marginBottom: '30px' }}>
+              <div style={{ marginBottom: '12px', fontSize: '14px', color: '#555' }}>
+                ✨ Real-time weather with OpenWeatherMap
+              </div>
+              <div style={{ marginBottom: '12px', fontSize: '14px', color: '#555' }}>
+                🎨 Beautiful backgrounds from Unsplash
+              </div>
+              <div style={{ marginBottom: '12px', fontSize: '14px', color: '#555' }}>
+                ⌨️ Powerful keyboard shortcuts (Ctrl+K, Ctrl+,)
+              </div>
+              <div style={{ marginBottom: '12px', fontSize: '14px', color: '#555' }}>
+                🔍 Multi-search engine support (Google, DuckDuckGo, Bing, etc.)
+              </div>
+              <div style={{ marginBottom: '12px', fontSize: '14px', color: '#555' }}>
+                🌙 Dark mode for comfortable viewing
+              </div>
+              <div style={{ marginBottom: '12px', fontSize: '14px', color: '#555' }}>
+                📦 Import/Export settings for easy backup
+              </div>
+            </div>
+            <p style={{ fontSize: '14px', color: '#888', marginBottom: '24px' }}>
+              Click the settings icon (⚙️) in the top-right corner to customize everything!
+            </p>
+            <button
+              onClick={async () => {
+                await completeOnboarding();
+                setShowOnboarding(false);
+                toast.success('Welcome aboard! Explore the settings to customize your experience.');
+                trackEvent('onboarding_completed', {});
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '14px 32px',
+                fontSize: '16px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
+                transition: 'transform 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
