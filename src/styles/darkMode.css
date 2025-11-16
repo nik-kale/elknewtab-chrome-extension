@@ -1,0 +1,136 @@
+/**
+ * Dark mode styles for Elk New Tab
+ * Can be toggled via settings
+ */
+
+[data-theme="dark"] {
+  /* Color palette for dark mode */
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a1f2e;
+  --bg-tertiary: #252b3b;
+
+  --text-primary: #e1e8ed;
+  --text-secondary: #8899a6;
+  --text-tertiary: #657786;
+
+  --accent-primary: #1da1f2;
+  --accent-hover: #1a91da;
+
+  --border-color: rgba(255, 255, 255, 0.1);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+
+  --success: #17bf63;
+  --warning: #ffad1f;
+  --error: #f45d22;
+  --info: #1da1f2;
+}
+
+[data-theme="dark"] .settings-panel {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .setting-group {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .setting-group h3,
+[data-theme="dark"] .setting-group h4 {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .background-option {
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .background-option:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .background-option.active {
+  background-color: var(--accent-primary);
+  color: white;
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="url"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] input::placeholder {
+  color: var(--text-tertiary);
+}
+
+[data-theme="dark"] button {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .settings-toggle {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .weather-widget,
+[data-theme="dark"] .quick-link {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 99;
+}
+
+.dark-mode-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
+}
+
+[data-theme="dark"] .dark-mode-toggle {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              border-color 0.3s ease;
+}
+
+/* Override transitions for specific elements */
+button,
+.background-option,
+.settings-toggle,
+.dark-mode-toggle {
+  transition: all 0.2s ease;
+}
