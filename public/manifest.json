@@ -36,7 +36,8 @@
     "https://api.openweathermap.org/*",
     "https://api.unsplash.com/*",
     "https://*.google.com/*",
-    "https://favicons.githubusercontent.com/*"
+    "https://favicons.githubusercontent.com/*",
+    "https://*/*"
   ],
   "web_accessible_resources": [
     {

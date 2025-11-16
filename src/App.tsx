@@ -17,6 +17,9 @@ import { trackEvent } from './utils/analytics'
 import { trackError } from './utils/errorTracking'
 import { validateUrl, sanitizeHtml } from './utils/validation'
 import { fetchFavicon } from './utils/faviconFetcher'
+import { encryptApiKey, decryptApiKey, validateInputLength } from './utils/security'
+import { preconnectToDomains, runWhenIdle, isSlowConnection, getPerformanceMetrics } from './utils/performanceOptimizations'
+import { getRecentColors, shouldShowBackupReminder } from './utils/uxEnhancements'
 import './styles/darkMode.css'
 
 // Add Chrome API type declarations to suppress TypeScript errors
@@ -85,6 +88,11 @@ function App() {
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false)
   const [keyboardShortcutsEnabled, setKeyboardShortcutsEnabled] = useState<boolean>(true)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false)
+  // Time format will be added in future update: const [timeFormat, setTimeFormat]
+  const [, setRecentColors] = useState<string[]>([])
+  const [, setShowBackupReminder] = useState<boolean>(false)
+  // Video controls: const [videoControls, setVideoControls]
+  // Custom greeting: const [customGreeting, setCustomGreeting]
 
   // Time and date state
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -201,7 +209,10 @@ function App() {
     WEATHER_API_KEY: 'weatherApiKey',
     SEARCH_ENGINE: 'searchEngine',
     DARK_MODE: 'darkMode',
-    KEYBOARD_SHORTCUTS_ENABLED: 'keyboardShortcutsEnabled'
+    KEYBOARD_SHORTCUTS_ENABLED: 'keyboardShortcutsEnabled',
+    // TIME_FORMAT: 'timeFormat',
+    // VIDEO_CONTROLS: 'videoControls',
+    // CUSTOM_GREETING: 'customGreeting'
   };
 
   // Add click outside handler
@@ -301,6 +312,14 @@ function App() {
   useEffect(() => {
     const initialize = async () => {
       try {
+        // Preconnect to external domains for better performance
+        preconnectToDomains([
+          'https://api.openweathermap.org',
+          'https://api.unsplash.com',
+          'https://www.google.com',
+          'https://favicons.githubusercontent.com'
+        ]);
+
         // Check if migration is needed
         if (await needsMigration()) {
           const result = await migrateData();
@@ -315,8 +334,24 @@ function App() {
           setShowOnboarding(true);
         }
 
-        // Track session start
-        trackEvent('session_start', {});
+        // Load recent colors
+        const colors = await getRecentColors();
+        setRecentColors(colors);
+
+        // Check for backup reminder (low priority, run when idle)
+        runWhenIdle(async () => {
+          const shouldShow = await shouldShowBackupReminder();
+          if (shouldShow) {
+            setShowBackupReminder(true);
+          }
+        });
+
+        // Track session start with performance metrics
+        const metrics = getPerformanceMetrics();
+        trackEvent('session_start', {
+          loadTime: metrics.loadTime,
+          isSlowConnection: isSlowConnection()
+        });
       } catch (error) {
         trackError(error as Error, { context: 'initialization' });
       }
@@ -395,7 +430,10 @@ function App() {
       STORAGE_KEYS.WEATHER_API_KEY,
       STORAGE_KEYS.SEARCH_ENGINE,
       STORAGE_KEYS.DARK_MODE,
-      STORAGE_KEYS.KEYBOARD_SHORTCUTS_ENABLED
+      STORAGE_KEYS.KEYBOARD_SHORTCUTS_ENABLED,
+      // STORAGE_KEYS.TIME_FORMAT,
+      // STORAGE_KEYS.VIDEO_CONTROLS,
+      // STORAGE_KEYS.CUSTOM_GREETING
     ], (result) => {
       console.log('Loaded settings from sync storage:', result);
 
@@ -438,10 +476,17 @@ function App() {
       if (result.quoteChangeInterval) setQuoteChangeInterval(result.quoteChangeInterval);
 
       // Load new feature settings
-      if (result.weatherApiKey) setWeatherApiKey(result.weatherApiKey);
+      if (result.weatherApiKey) {
+        // Decrypt API key
+        const decrypted = decryptApiKey(result.weatherApiKey);
+        setWeatherApiKey(decrypted);
+      }
       if (result.searchEngine) setSearchEngine(result.searchEngine);
       if (result.darkMode !== undefined) setDarkMode(result.darkMode);
       if (result.keyboardShortcutsEnabled !== undefined) setKeyboardShortcutsEnabled(result.keyboardShortcutsEnabled);
+      // if (result.timeFormat) setTimeFormat(result.timeFormat);
+      // if (result.videoControls) setVideoControls(result.videoControls);
+      // if (result.customGreeting) setCustomGreeting(result.customGreeting);
 
       // Then load media files from local storage (larger data)
       chrome.storage.local.get([
@@ -703,6 +748,8 @@ function App() {
           setKeyboardShortcutsEnabled(value);
           nonMediaSettings[key] = value;
           break;
+        // Future features (will be uncommented when UI is added):
+        // case STORAGE_KEYS.TIME_FORMAT, VIDEO_CONTROLS, CUSTOM_GREETING
       }
     });
 
@@ -2362,20 +2409,33 @@ function App() {
               <label>
                 Weather API Key (OpenWeatherMap):
                 <input
-                  type="text"
+                  type="password"
                   placeholder="Enter your API key"
                   value={weatherApiKey}
                   onChange={(e) => {
                     const newKey = e.target.value;
+
+                    // Validate input length
+                    const lengthValidation = validateInputLength(newKey, 100, 'API Key');
+                    if (!lengthValidation.valid) {
+                      toast.error(lengthValidation.error!);
+                      return;
+                    }
+
                     setWeatherApiKey(newKey);
-                    saveSetting(STORAGE_KEYS.WEATHER_API_KEY, newKey);
+                    // Encrypt before saving
+                    const encrypted = encryptApiKey(newKey);
+                    saveSetting(STORAGE_KEYS.WEATHER_API_KEY, encrypted);
+                    trackEvent('weather_api_key_updated', { hasKey: newKey.length > 0 });
                   }}
                   style={{ width: '100%', marginTop: '5px' }}
+                  maxLength={100}
                 />
               </label>
               {weatherError && <div style={{ color: 'red', fontSize: '12px' }}>{weatherError}</div>}
               <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '5px' }}>
                 Get a free API key at <a href="https://openweathermap.org/api" target="_blank" rel="noopener noreferrer">openweathermap.org</a>
+                <br />🔒 Your API key is encrypted before storage
               </div>
             </div>
 
