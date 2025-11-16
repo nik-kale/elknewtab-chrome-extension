@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react'
 import './App.css'
 import { RandomColorOptions } from './components/RandomColorGenerator'
+import { toast } from './utils/notifications'
+import { useWeather, useStorageQuota } from './hooks/index'
+import { registerDefaultShortcuts } from './utils/keyboardShortcuts'
+import { SEARCH_ENGINES, performSearch } from './utils/searchEngines'
+import { exportSettings, importSettings, resetSettings } from './utils/settingsManager'
+import { compressImage } from './utils/imageCompression'
+import UnsplashBrowser from './components/UnsplashBrowser'
+import ConfirmDialog from './components/ConfirmDialog'
+import { checkForUpdates, showUpdateNotification } from './utils/updates'
+import './styles/darkMode.css'
 
 // Add Chrome API type declarations to suppress TypeScript errors
 declare namespace chrome {
@@ -60,12 +70,23 @@ function App() {
   const [isPopup, setIsPopup] = useState<boolean>(false)
   const [isDragging, setIsDragging] = useState<boolean>(false)
 
+  // New features state
+  const [weatherApiKey, setWeatherApiKey] = useState<string>('')
+  const [searchEngine, setSearchEngine] = useState<string>('google')
+  const [darkMode, setDarkMode] = useState<boolean>(false)
+  const [showUnsplashBrowser, setShowUnsplashBrowser] = useState<boolean>(false)
+  const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false)
+  const [keyboardShortcutsEnabled, setKeyboardShortcutsEnabled] = useState<boolean>(true)
+
   // Time and date state
   const [currentTime, setCurrentTime] = useState(new Date())
   const [greeting, setGreeting] = useState('')
 
-  // Quote and weather - read-only, not setting these
-  const [weather] = useState({ temp: '72°', location: 'San Francisco, CA' })
+  // Use real weather hook instead of fake data
+  const { weather, loading: weatherLoading, error: weatherError } = useWeather(weatherApiKey)
+
+  // Storage quota monitoring
+  const { quota, warning: storageWarning } = useStorageQuota()
 
   // UI visibility toggles
   const [showSearchBar, setShowSearchBar] = useState<boolean>(true)
@@ -168,7 +189,11 @@ function App() {
     QUICK_LINKS: 'quickLinks',
     QUOTES: 'quotes',
     CURRENT_QUOTE_INDEX: 'currentQuoteIndex',
-    QUOTE_CHANGE_INTERVAL: 'quoteChangeInterval'
+    QUOTE_CHANGE_INTERVAL: 'quoteChangeInterval',
+    WEATHER_API_KEY: 'weatherApiKey',
+    SEARCH_ENGINE: 'searchEngine',
+    DARK_MODE: 'darkMode',
+    KEYBOARD_SHORTCUTS_ENABLED: 'keyboardShortcutsEnabled'
   };
 
   // Add click outside handler
@@ -190,6 +215,53 @@ function App() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isSettingsOpen]);
+
+  // Register keyboard shortcuts
+  useEffect(() => {
+    if (keyboardShortcutsEnabled) {
+      const cleanup = registerDefaultShortcuts({
+        toggleSettings: () => setIsSettingsOpen(prev => !prev),
+        focusSearch: () => {
+          const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
+          searchInput?.focus();
+        },
+        nextQuote: () => {
+          setCurrentQuoteIndex(prev => (prev + 1) % quotes.length);
+        },
+        randomBackground: () => {
+          setBackgroundType('random');
+        }
+      });
+      return cleanup;
+    }
+  }, [keyboardShortcutsEnabled, quotes.length]);
+
+  // Check for updates on mount
+  useEffect(() => {
+    const checkUpdates = async () => {
+      const updateInfo = await checkForUpdates();
+      if (updateInfo && updateInfo.isUpdate) {
+        showUpdateNotification(updateInfo);
+      }
+    };
+    checkUpdates();
+  }, []);
+
+  // Apply dark mode class
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark-mode');
+    } else {
+      document.documentElement.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
+
+  // Show storage warning toasts
+  useEffect(() => {
+    if (storageWarning) {
+      toast.error(storageWarning);
+    }
+  }, [storageWarning]);
 
   // Load settings from Chrome storage on initial mount
   useEffect(() => {
@@ -240,7 +312,11 @@ function App() {
       STORAGE_KEYS.QUICK_LINKS,
       STORAGE_KEYS.QUOTES,
       STORAGE_KEYS.CURRENT_QUOTE_INDEX,
-      STORAGE_KEYS.QUOTE_CHANGE_INTERVAL
+      STORAGE_KEYS.QUOTE_CHANGE_INTERVAL,
+      STORAGE_KEYS.WEATHER_API_KEY,
+      STORAGE_KEYS.SEARCH_ENGINE,
+      STORAGE_KEYS.DARK_MODE,
+      STORAGE_KEYS.KEYBOARD_SHORTCUTS_ENABLED
     ], (result) => {
       console.log('Loaded settings from sync storage:', result);
 
@@ -281,6 +357,12 @@ function App() {
       if (result.quotes) setQuotes(result.quotes);
       if (result.currentQuoteIndex !== undefined) setCurrentQuoteIndex(result.currentQuoteIndex);
       if (result.quoteChangeInterval) setQuoteChangeInterval(result.quoteChangeInterval);
+
+      // Load new feature settings
+      if (result.weatherApiKey) setWeatherApiKey(result.weatherApiKey);
+      if (result.searchEngine) setSearchEngine(result.searchEngine);
+      if (result.darkMode !== undefined) setDarkMode(result.darkMode);
+      if (result.keyboardShortcutsEnabled !== undefined) setKeyboardShortcutsEnabled(result.keyboardShortcutsEnabled);
 
       // Then load media files from local storage (larger data)
       chrome.storage.local.get([
@@ -524,6 +606,22 @@ function App() {
           break;
         case STORAGE_KEYS.QUOTE_CHANGE_INTERVAL:
           setQuoteChangeInterval(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.WEATHER_API_KEY:
+          setWeatherApiKey(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.SEARCH_ENGINE:
+          setSearchEngine(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.DARK_MODE:
+          setDarkMode(value);
+          nonMediaSettings[key] = value;
+          break;
+        case STORAGE_KEYS.KEYBOARD_SHORTCUTS_ENABLED:
+          setKeyboardShortcutsEnabled(value);
           nonMediaSettings[key] = value;
           break;
       }
@@ -1135,12 +1233,12 @@ function App() {
     });
   };
 
-  // Handle search submission
+  // Handle search submission with selected search engine
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const searchValue = (e.currentTarget.elements.namedItem('search') as HTMLInputElement).value;
     if (searchValue.trim()) {
-      window.location.href = `https://www.google.com/search?q=${encodeURIComponent(searchValue)}`;
+      performSearch(searchValue, searchEngine);
     }
   };
 
@@ -1180,7 +1278,7 @@ function App() {
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
 
@@ -1188,31 +1286,40 @@ function App() {
     if (files.length > 0) {
       const file = files[0];
 
-      // Check file size
-      const isVideo = file.type.startsWith('video/');
-      const maxSize = isVideo ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
-      if (file.size > maxSize) {
-        alert(`File is too large. Maximum size is ${isVideo ? '10MB' : '5MB'}.`);
-        return;
-      }
+      // Handle image files with compression
+      if (file.type.startsWith('image/')) {
+        try {
+          // Compress image before saving
+          const compressedDataUrl = await compressImage(file, { maxSizeKB: 500 });
 
-      const reader = new FileReader();
-      reader.onloadend = (e) => {
-        const result = e.target?.result as string;
-
-        if (file.type.startsWith('image/')) {
           const newBackground = {
             id: Date.now().toString(),
-            url: result,
+            url: compressedDataUrl,
             type: 'image'
           };
 
           updateSettings({
-            backgroundImage: result,
+            backgroundImage: compressedDataUrl,
             backgroundType: 'image',
             backgrounds: [...backgrounds, newBackground]
           });
-        } else if (file.type.startsWith('video/')) {
+
+          toast.success('Image uploaded and compressed successfully!');
+        } catch (error) {
+          console.error('Error compressing image:', error);
+          toast.error('Failed to upload image. Please try a smaller file.');
+        }
+      } else if (file.type.startsWith('video/')) {
+        // Check video file size
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+          toast.error('Video is too large. Maximum size is 10MB.');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = (e) => {
+          const result = e.target?.result as string;
           const newBackground = {
             id: Date.now().toString(),
             url: result,
@@ -1224,9 +1331,11 @@ function App() {
             backgroundType: 'video',
             backgrounds: [...backgrounds, newBackground]
           });
-        }
-      };
-      reader.readAsDataURL(file);
+
+          toast.success('Video uploaded successfully!');
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -1254,7 +1363,7 @@ function App() {
     const maxAllowedNewImages = 5 - existingImagesCount;
 
     if (imageFilesCount > maxAllowedNewImages) {
-      alert(`You can only have up to 5 images total. You currently have ${existingImagesCount} image(s) and can add ${maxAllowedNewImages} more.`);
+      toast.error(`You can only have up to 5 images total. You currently have ${existingImagesCount} image(s) and can add ${maxAllowedNewImages} more.`);
       return;
     }
 
@@ -1269,7 +1378,7 @@ function App() {
       const maxSize = isVideo ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
 
       if (file.size > maxSize) {
-        alert(`File ${file.name} is too large. Maximum size is ${isVideo ? '10MB' : '5MB'}.`);
+        toast.error(`File ${file.name} is too large. Maximum size is ${isVideo ? '10MB' : '5MB'}.`);
         return;
       }
 
@@ -1280,7 +1389,7 @@ function App() {
     const MAX_STORAGE_BYTES = 5 * 1024 * 1024; // 5MB for images, which is conservative
 
     if (totalSizeBytes > MAX_STORAGE_BYTES) {
-      alert(`Total file size (${Math.round(totalSizeBytes/1024/1024)}MB) exceeds storage limit. Please select smaller or fewer files.`);
+      toast.error(`Total file size (${Math.round(totalSizeBytes/1024/1024)}MB) exceeds storage limit. Consider using fewer or smaller files.`);
       return;
     }
 
@@ -1339,7 +1448,7 @@ function App() {
             });
           }
 
-          alert(`${newBackgrounds.length} background${newBackgrounds.length === 1 ? '' : 's'} added successfully!`);
+          toast.success(`${newBackgrounds.length} background${newBackgrounds.length === 1 ? '' : 's'} added successfully!`);
         }
       };
 
@@ -1719,11 +1828,26 @@ function App() {
       {/* Weather Widget */}
       {showWeather && (
         <div className="weather-widget">
-          <div className="weather-icon">☀️</div>
-          <div className="weather-info">
-            <div className="weather-temp">{weather.temp}</div>
-            <div className="weather-location">{weather.location}</div>
-          </div>
+          {weatherLoading ? (
+            <div className="weather-info">
+              <div className="weather-temp">Loading...</div>
+            </div>
+          ) : weather ? (
+            <>
+              <div className="weather-icon">{weather.icon || '☀️'}</div>
+              <div className="weather-info">
+                <div className="weather-temp">{weather.temp}</div>
+                <div className="weather-location">{weather.location}</div>
+                <div style={{ fontSize: '12px', opacity: 0.8 }}>{weather.condition}</div>
+              </div>
+            </>
+          ) : (
+            <div className="weather-info">
+              <div style={{ fontSize: '12px', cursor: 'pointer' }} onClick={() => setIsSettingsOpen(true)}>
+                {weatherApiKey ? 'Weather unavailable' : 'Set API key in settings'}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -2063,7 +2187,226 @@ function App() {
               </label>
             </div>
           </div>
+
+          {/* Advanced Features Section */}
+          <div className="setting-group">
+            <h3>Advanced Features</h3>
+
+            {/* Weather API Key */}
+            <div className="setting-row">
+              <label>
+                Weather API Key (OpenWeatherMap):
+                <input
+                  type="text"
+                  placeholder="Enter your API key"
+                  value={weatherApiKey}
+                  onChange={(e) => {
+                    const newKey = e.target.value;
+                    setWeatherApiKey(newKey);
+                    saveSetting(STORAGE_KEYS.WEATHER_API_KEY, newKey);
+                  }}
+                  style={{ width: '100%', marginTop: '5px' }}
+                />
+              </label>
+              {weatherError && <div style={{ color: 'red', fontSize: '12px' }}>{weatherError}</div>}
+              <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '5px' }}>
+                Get a free API key at <a href="https://openweathermap.org/api" target="_blank" rel="noopener noreferrer">openweathermap.org</a>
+              </div>
+            </div>
+
+            {/* Search Engine Selector */}
+            <div className="setting-row">
+              <label>
+                Default Search Engine:
+                <select
+                  value={searchEngine}
+                  onChange={(e) => {
+                    const engine = e.target.value;
+                    setSearchEngine(engine);
+                    saveSetting(STORAGE_KEYS.SEARCH_ENGINE, engine);
+                  }}
+                  style={{ width: '100%', marginTop: '5px' }}
+                >
+                  {SEARCH_ENGINES.map((engine) => (
+                    <option key={engine.id} value={engine.id}>
+                      {engine.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {/* Dark Mode Toggle */}
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={darkMode}
+                  onChange={(e) => {
+                    const enabled = e.target.checked;
+                    setDarkMode(enabled);
+                    saveSetting(STORAGE_KEYS.DARK_MODE, enabled);
+                  }}
+                />
+                Enable Dark Mode
+              </label>
+            </div>
+
+            {/* Keyboard Shortcuts Toggle */}
+            <div className="setting-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={keyboardShortcutsEnabled}
+                  onChange={(e) => {
+                    const enabled = e.target.checked;
+                    setKeyboardShortcutsEnabled(enabled);
+                    saveSetting(STORAGE_KEYS.KEYBOARD_SHORTCUTS_ENABLED, enabled);
+                  }}
+                />
+                Enable Keyboard Shortcuts
+              </label>
+              {keyboardShortcutsEnabled && (
+                <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '5px' }}>
+                  • Ctrl+K or / - Focus search • Ctrl+, - Toggle settings<br />
+                  • Ctrl+Q - Next quote • Ctrl+R - Random background
+                </div>
+              )}
+            </div>
+
+            {/* Unsplash Browser Button */}
+            <div className="setting-row">
+              <button
+                onClick={() => setShowUnsplashBrowser(true)}
+                className="button-primary"
+                style={{ width: '100%' }}
+              >
+                Browse Unsplash Photos
+              </button>
+            </div>
+          </div>
+
+          {/* Data Management Section */}
+          <div className="setting-group">
+            <h3>Data Management</h3>
+
+            <div className="setting-row">
+              <button
+                onClick={async () => {
+                  try {
+                    await exportSettings();
+                    toast.success('Settings exported successfully!');
+                  } catch (error) {
+                    console.error('Export error:', error);
+                    toast.error('Failed to export settings');
+                  }
+                }}
+                className="button-secondary"
+                style={{ width: '100%', marginBottom: '10px' }}
+              >
+                Export Settings
+              </button>
+            </div>
+
+            <div className="setting-row">
+              <label
+                htmlFor="import-settings"
+                className="button-secondary"
+                style={{ display: 'block', textAlign: 'center', cursor: 'pointer', width: '100%', marginBottom: '10px' }}
+              >
+                Import Settings
+                <input
+                  id="import-settings"
+                  type="file"
+                  accept=".json"
+                  onChange={async (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      try {
+                        await importSettings(e.target.files[0]);
+                        toast.success('Settings imported successfully! Reloading...');
+                        setTimeout(() => window.location.reload(), 1000);
+                      } catch (error) {
+                        console.error('Import error:', error);
+                        toast.error('Failed to import settings');
+                      }
+                    }
+                  }}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+
+            <div className="setting-row">
+              <button
+                onClick={() => setShowResetConfirm(true)}
+                className="button-danger"
+                style={{ width: '100%' }}
+              >
+                Reset All Settings
+              </button>
+            </div>
+
+            {/* Storage Usage Info */}
+            <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '10px' }}>
+              Storage Usage: {Math.round((quota.syncUsed / quota.syncQuota) * 100)}% sync,
+              {Math.round((quota.localUsed / quota.localQuota) * 100)}% local
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Unsplash Browser Modal */}
+      {showUnsplashBrowser && (
+        <UnsplashBrowser
+          onClose={() => setShowUnsplashBrowser(false)}
+          onSelectImage={async (imageUrl) => {
+            try {
+              // Fetch and compress the image
+              const response = await fetch(imageUrl);
+              const blob = await response.blob();
+              const file = new File([blob], 'unsplash-image.jpg', { type: 'image/jpeg' });
+              const compressedDataUrl = await compressImage(file, { maxSizeKB: 500 });
+
+              const newBackground = {
+                id: Date.now().toString(),
+                url: compressedDataUrl,
+                type: 'image'
+              };
+
+              updateSettings({
+                backgroundImage: compressedDataUrl,
+                backgroundType: 'image',
+                backgrounds: [...backgrounds, newBackground]
+              });
+
+              toast.success('Unsplash image set as background!');
+              setShowUnsplashBrowser(false);
+            } catch (error) {
+              console.error('Error setting Unsplash image:', error);
+              toast.error('Failed to set background image');
+            }
+          }}
+        />
+      )}
+
+      {/* Reset Confirmation Dialog */}
+      {showResetConfirm && (
+        <ConfirmDialog
+          title="Reset All Settings"
+          message="Are you sure you want to reset all settings? This will delete all your customizations and cannot be undone."
+          onConfirm={async () => {
+            try {
+              await resetSettings();
+              toast.success('All settings reset! Reloading...');
+              setTimeout(() => window.location.reload(), 1000);
+            } catch (error) {
+              console.error('Reset error:', error);
+              toast.error('Failed to reset settings');
+            }
+            setShowResetConfirm(false);
+          }}
+          onCancel={() => setShowResetConfirm(false)}
+        />
       )}
     </div>
   );
