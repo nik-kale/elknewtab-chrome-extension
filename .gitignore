@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Build artifacts
+*.timestamp-*.js
+vite.config.ts.timestamp-*
+
+# Release files (use GitHub Releases instead)
+*.zip
