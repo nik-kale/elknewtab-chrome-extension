@@ -11,10 +11,13 @@
   "keywords": [
     "chrome-extension",
     "new-tab",
-    "custom-background"
+    "custom-background",
+    "react",
+    "typescript",
+    "vite"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "Nik Kale",
+  "license": "MIT",
   "devDependencies": {
     "@crxjs/vite-plugin": "^1.0.14",
     "@types/chrome": "^0.0.262",
